@@ -14,6 +14,7 @@ import { Orders } from './pages/dashboard/Orders';
 import { Kitchen } from './pages/dashboard/Kitchen';
 import { Billing } from './pages/dashboard/Billing';
 import { Customers } from './pages/dashboard/Customers';
+import PublicMenu from './pages/PublicMenu';
 
 // Protects onboarding page - user must be logged in but must NOT have an organization
 const OnboardingRoute = ({ children }) => {
@@ -135,6 +136,10 @@ const router = createBrowserRouter([
         <Onboarding />
       </OnboardingRoute>
     ),
+  },
+  {
+    path: '/menu/:orgId',
+    element: <PublicMenu />,
   },
   {
     path: '/dashboard',

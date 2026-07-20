@@ -131,6 +131,23 @@ class TableController {
 
     }
 
+    // method to get table details publicly by orgId and tableNumber
+    getPublicTableByNumber = async (req, res) => {
+
+        const { orgId, tableNumber } = req.params;
+
+        const table = await this.tableDao.findTableByNumber(orgId, Number(tableNumber));
+
+        if (!table) {
+
+            throw new ApiError(404, `Table number ${tableNumber} not found`);
+
+        }
+
+        return ApiResponse(res, 200, "Table retrieved successfully", { table });
+
+    }
+
 }
 
 export default TableController;

@@ -204,6 +204,144 @@ class OrderController {
         return ApiResponse(res, 200, "Order payment status updated successfully", { order: updatedOrder });
 
     }
+
+    // method to create order publicly without auth
+    createPublicOrder = async (req, res) => {
+
+        const { orgId } = req.params;
+
+        const { tableId, items } = req.body;
+
+        // verify table belongs to the organization
+        const table = await this.tableDao.findTableById(tableId);
+
+        if (!table || table.organization.toString() !== orgId) {
+
+            throw new ApiError(404, "Table not found");
+
+        }
+
+        const orderItems = [];
+
+        let totalAmount = 0;
+
+        for (const item of items) {
+
+            const menuItem = await this.menuItemDao.findMenuItemById(item.menuItemId);
+
+            if (!menuItem || menuItem.organization.toString() !== orgId) {
+
+                throw new ApiError(404, `Menu item not found: ${item.menuItemId}`);
+
+            }
+
+            if (!menuItem.isAvailable) {
+
+                throw new ApiError(400, `Menu item "${menuItem.name}" is currently unavailable`);
+
+            }
+
+            const currentPrice = menuItem.price;
+
+            orderItems.push({
+
+                menuItem: menuItem._id,
+
+                quantity: item.quantity,
+
+                price: currentPrice
+
+            });
+
+            totalAmount += currentPrice * item.quantity;
+
+        }
+
+        const orderCount = await this.orderDao.countOrdersByOrganization(orgId);
+
+        const orderNumber = `ORD-${Date.now().toString().slice(-4)}-${orderCount + 1}`;
+
+        const newOrder = await this.orderDao.createOrder({
+
+            organization: orgId,
+
+            table: tableId,
+
+            items: orderItems,
+
+            totalAmount,
+
+            status: "pending",
+
+            paymentStatus: "pending",
+
+            orderNumber
+
+        });
+
+        // automatically mark table as occupied
+        await this.tableDao.updateTable(tableId, { status: "occupied" });
+
+        return ApiResponse(res, 201, "Order placed successfully", { order: newOrder });
+
+    }
+
+    // method to process public order payment & complete order checkout
+    updatePublicOrderPayment = async (req, res) => {
+
+        const { orderId } = req.params;
+
+        const { paymentStatus, paymentMethod } = req.body;
+
+        const order = await this.orderDao.findOrderById(orderId);
+
+        if (!order) {
+
+            throw new ApiError(404, "Order not found");
+
+        }
+
+        const updateFields = { paymentStatus };
+
+        if (paymentMethod) {
+
+            updateFields.paymentMethod = paymentMethod;
+
+        }
+
+        // if marking as paid, let's also automatically mark the order as completed
+        if (paymentStatus === "paid") {
+
+            updateFields.status = "completed";
+
+            // release table
+            await this.tableDao.updateTable(order.table._id, { status: "available" });
+
+        }
+
+        const updatedOrder = await this.orderDao.updateOrderById(orderId, updateFields);
+
+        return ApiResponse(res, 200, "Order checkout processed successfully", { order: updatedOrder });
+
+    }
+
+    // method to get order details publicly (tracking)
+    getPublicOrderDetails = async (req, res) => {
+
+        const { orderId } = req.params;
+
+        const order = await this.orderDao.findOrderById(orderId);
+
+        if (!order) {
+
+            throw new ApiError(404, "Order not found");
+
+        }
+
+        return ApiResponse(res, 200, "Order details retrieved successfully", { order });
+
+    }
+
 }
 
 // exporting order controller

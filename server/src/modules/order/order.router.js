@@ -61,5 +61,26 @@ router.put("/:orderId/status", authMiddleware, organizationMiddleware, updateOrd
 */
 router.put("/:orderId/payment", authMiddleware, organizationMiddleware, updateOrderPaymentValidationRules, asyncWrapper(orderController.updateOrderPayment));
 
+/*
+    @route POST /api/orders/public/:orgId
+    @desc Place a new order publicly (Customer self-order)
+    @access Public
+*/
+router.post("/public/:orgId", asyncWrapper(orderController.createPublicOrder));
+
+/*
+    @route GET /api/orders/public/:orderId
+    @desc Get order status and tracking details publicly
+    @access Public
+*/
+router.get("/public/:orderId", asyncWrapper(orderController.getPublicOrderDetails));
+
+/*
+    @route PUT /api/orders/public/:orderId/payment
+    @desc Process order payment publicly (Customer self-payment)
+    @access Public
+*/
+router.put("/public/:orderId/payment", asyncWrapper(orderController.updatePublicOrderPayment));
+
 // exporting router
 export default router;

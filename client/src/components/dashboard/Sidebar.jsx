@@ -1,5 +1,6 @@
 import { LayoutDashboard, UtensilsCrossed, Grid3x3, ClipboardList, ChefHat, Receipt, Users, LogOut, Settings } from 'lucide-react';
 import { Logo } from '../Logo';
+import { logoutUser } from '../../api/auth';
 
 export const Sidebar = ({ activeSection, onNavigate }) => {
   const items = [
@@ -12,6 +13,15 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
     { id: 'customers', label: 'Customers', icon: Users },
   ];
 
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <aside className="w-64 bg-slate-950 text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-10 font-sans border-r border-slate-900">
       <div className="p-6 flex items-center gap-3 text-white mb-2 border-b border-slate-900/50">
@@ -23,7 +33,7 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
           <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mt-0.5">RMS Dashboard</span>
         </div>
       </div>
-      
+
       <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto scroll-hide mt-4">
         {items.map((item) => {
           const isActive = activeSection === item.id || (activeSection === '' && item.id === 'overview');
@@ -31,11 +41,10 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer ${
-                isActive 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/10' 
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer ${isActive
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/10'
                   : 'hover:bg-slate-900 hover:text-white text-slate-400'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <item.icon className={`w-4.5 h-4.5 ${isActive ? 'text-indigo-200' : 'text-slate-500'}`} />
@@ -46,14 +55,14 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
           );
         })}
       </nav>
-      
+
       <div className="p-4 mt-auto border-t border-slate-900 space-y-1.5">
         <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold hover:bg-slate-900 hover:text-white transition-all text-slate-400 cursor-pointer">
           <Settings className="w-4.5 h-4.5 text-slate-500" />
           Settings
         </button>
-        <button 
-          onClick={() => window.location.href = '/'}
+        <button
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold hover:bg-red-950 hover:text-red-400 text-slate-400 transition-all cursor-pointer"
         >
           <LogOut className="w-4.5 h-4.5 text-slate-500" />

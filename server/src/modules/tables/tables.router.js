@@ -40,4 +40,11 @@ router.put("/:tableId", authMiddleware, organizationMiddleware, updateTableValid
 */
 router.delete("/:tableId", authMiddleware, organizationMiddleware, asyncWrapper(tablesController.deleteTable));
 
+/*
+    @route GET /api/tables/public/:orgId/number/:tableNumber
+    @desc Get table details publicly by organization ID and table number
+    @access Public
+*/
+router.get("/public/:orgId/number/:tableNumber", asyncWrapper(tablesController.getPublicTableByNumber));
+
 export default router;

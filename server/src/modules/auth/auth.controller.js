@@ -93,16 +93,10 @@ class AuthController {
 
     // method to handle user logout
     logout = async (req, res) => {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "lax"
-        });
-        res.clearCookie("organization", {
-            httpOnly: true,
-            secure: env.NODE_ENV === "production",
-            sameSite: "lax"
-        });
+        
+        res.clearCookie("token", COOKIE_CONFIG);
+
+        res.clearCookie("organization", COOKIE_CONFIG);
         return ApiResponse(res, 200, "User logged out successfully");
     }
 
