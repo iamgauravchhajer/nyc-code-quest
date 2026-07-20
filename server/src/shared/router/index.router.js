@@ -2,6 +2,7 @@
 import express from "express";
 import authRouter from "../../modules/auth/auth.router.js";
 import ApiResponse from "../utils/ApiResponse.util.js";
+import organizationRouter from "../../modules/organization/organization.router.js";
 
 // creating router instance
 const router = express.Router();
@@ -13,5 +14,6 @@ router.get("/health", (req, res) => {
 
 // mounting auth router
 router.use("/auth", authRouter);
+router.use("/organizations", organizationRouter);
 
 export default router;
