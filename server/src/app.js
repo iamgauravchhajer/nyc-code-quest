@@ -25,7 +25,7 @@ function createApp() {
     const __dirname = path.dirname(__filename);
 
     // Serve static files from the "public" directory
-    app.use(express.static(path.join(__dirname, "public")));
+    app.use(express.static(path.join(__dirname, "..", "public")));
 
     // error handling middleware
     app.use(errorHandler);
