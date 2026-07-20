@@ -1,4 +1,4 @@
-// iumporting modules
+// importing modules
 import express from "express";
 import authRouter from "../../modules/auth/auth.router.js";
 import ApiResponse from "../utils/ApiResponse.util.js";
