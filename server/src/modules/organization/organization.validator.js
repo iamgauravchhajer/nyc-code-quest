@@ -57,3 +57,5 @@ const organizationValidationRules = [
     // validate errors
     validateErrorMiddleware
 ];
+
+export default organizationValidationRules;

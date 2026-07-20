@@ -4,6 +4,7 @@ import express from "express";
 import asyncWrapper from "../../shared/utils/asyncWraper.util.js";
 import authMiddleware from "../../shared/middlewares/auth.middleware.js";
 import OrganizationController from "./organization.controller.js";
+import organizationValidationRules from "./organization.validator.js"; 
 
 // making a router instance
 const router = express.Router();
@@ -18,7 +19,7 @@ const organizationController = new OrganizationController();
     @access Private
 
 */
-router.post("/", authMiddleware, asyncWrapper(organizationController.createOrganization));
+router.post("/", authMiddleware, organizationValidationRules, asyncWrapper(organizationController.createOrganization));
 
 /*
     @route GET /api/organizations
@@ -32,7 +33,7 @@ router.get("/", authMiddleware, asyncWrapper(organizationController.getOrganizat
     @desc Update organization details
     @access Private
 */
-router.put("/", authMiddleware, asyncWrapper(organizationController.updateOrganizationDetails));
+router.put("/", authMiddleware, organizationValidationRules, asyncWrapper(organizationController.updateOrganizationDetails));
 
 /*
     @route DELETE /api/organizations
