@@ -14,13 +14,13 @@ import {
   Clock,
   ImageIcon,
   Hash,
-  ChevronRight,
   Upload,
   Trash2,
 } from 'lucide-react';
 import axios from 'axios';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
+import { uploadToImageKit } from '../api/imagekit';
 
 
 /* ─── Step metadata ──────────────────────────────────────────── */
@@ -68,22 +68,6 @@ function Input({ icon: Icon, className = '', ...props }) {
   );
 }
 
-function StyledSelect({ icon: Icon, children, className = '', ...props }) {
-  return (
-    <div className="relative group">
-      {Icon && (
-        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-900 transition-colors pointer-events-none" />
-      )}
-      <select
-        {...props}
-        className={`w-full appearance-none ${Icon ? 'pl-10' : 'pl-4'} pr-8 py-2.5 bg-white/50 border border-gray-200/80 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all cursor-pointer ${className}`}
-      >
-        {children}
-      </select>
-      <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 rotate-90 pointer-events-none" />
-    </div>
-  );
-}
 
 /* ─── Main component ─────────────────────────────────────────── */
 export const Onboarding = () => {
@@ -130,7 +114,7 @@ export const Onboarding = () => {
     setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
   }, []);
 
-  const handleFileUpload = useCallback((e, field) => {
+  const handleFileUpload = useCallback(async (e, field) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -142,22 +126,23 @@ export const Onboarding = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm((p) => ({ ...p, [field]: reader.result }));
+    try {
+      const fileName = `${field}-${Date.now()}-${file.name}`;
+      const imageUrl = await uploadToImageKit(file, fileName);
+
+      setForm((p) => ({ ...p, [field]: imageUrl }));
       setFieldErrors((prev) => {
         const n = { ...prev };
         delete n[field];
         return n;
       });
-    };
-    reader.onerror = () => {
+    } catch (err) {
+      console.error(err);
       setFieldErrors((prev) => ({
         ...prev,
-        [field]: 'Failed to read file',
+        [field]: 'Failed to upload image to ImageKit',
       }));
-    };
-    reader.readAsDataURL(file);
+    }
   }, []);
 
   // Memoised per-step validator
@@ -630,38 +615,6 @@ export const Onboarding = () => {
                       value={form.tableCount}
                       onChange={(e) => { setField('tableCount', e.target.value); clearErr('tableCount'); }}
                     />
-                  </FieldWrap>
-
-                  <FieldWrap label="Currency">
-                    <StyledSelect
-                      name="currency"
-                      value={form.currency}
-                      onChange={(e) => setField('currency', e.target.value)}
-                    >
-                      <option value="INR">🇮🇳  INR — Indian Rupee (₹)</option>
-                      <option value="USD">🇺🇸  USD — US Dollar ($)</option>
-                      <option value="EUR">🇪🇺  EUR — Euro (€)</option>
-                      <option value="GBP">🇬🇧  GBP — British Pound (£)</option>
-                      <option value="AED">🇦🇪  AED — UAE Dirham (د.إ)</option>
-                      <option value="SGD">🇸🇬  SGD — Singapore Dollar (S$)</option>
-                    </StyledSelect>
-                  </FieldWrap>
-
-                  <FieldWrap label="Timezone">
-                    <StyledSelect
-                      name="timezone"
-                      value={form.timezone}
-                      onChange={(e) => setField('timezone', e.target.value)}
-                    >
-                      <option value="Asia/Kolkata">Asia/Kolkata — IST (UTC +5:30)</option>
-                      <option value="UTC">UTC — Coordinated Universal Time</option>
-                      <option value="America/New_York">America/New_York — EST (UTC −5)</option>
-                      <option value="America/Los_Angeles">America/Los_Angeles — PST (UTC −8)</option>
-                      <option value="Europe/London">Europe/London — GMT (UTC +0)</option>
-                      <option value="Europe/Paris">Europe/Paris — CET (UTC +1)</option>
-                      <option value="Asia/Dubai">Asia/Dubai — GST (UTC +4)</option>
-                      <option value="Asia/Singapore">Asia/Singapore — SGT (UTC +8)</option>
-                    </StyledSelect>
                   </FieldWrap>
                 </div>
               )}

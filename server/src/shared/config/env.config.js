@@ -16,6 +16,9 @@ const envSchema = z.object({
     LOGGER_LEVEL: z.string().default(envConstants.LOGGER_LEVEL),
     JWT_SECRET: z.string().default(envConstants.JWT_SECRET),
     CORS_ORIGIN: z.string().default(envConstants.CORS_ORIGIN),
+    IMAGEKIT_PUBLIC_KEY: z.string().default("public_mockkey123456"),
+    IMAGEKIT_PRIVATE_KEY: z.string().default("private_mockkey123456"),
+    IMAGEKIT_URL_ENDPOINT: z.string().default("https://ik.imagekit.io/mockrest"),
 });
 
 // Parse and validate environment variables
