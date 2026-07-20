@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { Logo } from './Logo';
 
@@ -33,12 +34,12 @@ export const Navbar = () => {
 
       {/* Action / CTA + Hamburger */}
       <div className="flex items-center gap-3">
-        <a
-          href="#"
+        <Link
+          to="/sign-up"
           className="bg-gray-900 text-white text-[13px] font-medium px-4 sm:px-5 py-2 rounded-full hover:bg-gray-800 transition-colors"
         >
           Try It Free
-        </a>
+        </Link>
         
         {/* Hamburger Menu button */}
         <button

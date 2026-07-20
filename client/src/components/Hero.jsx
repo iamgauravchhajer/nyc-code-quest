@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { ArrowUp, Sparkles } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { ScaledDashboard, DashboardMockup } from './DashboardMockup';
@@ -73,12 +74,12 @@ export const Hero = () => {
 
         {/* Call to Actions */}
         <div className="animate-fade-up [animation-delay:460ms] mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-3">
-          <a
-            href="#"
+          <Link
+            to="/sign-up"
             className="bg-gray-900 text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-gray-800 hover:shadow-lg transition-all"
           >
             Try It Free
-          </a>
+          </Link>
           <a
             href="#"
             className="text-gray-700 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-gray-300 hover:bg-gray-100 transition-colors bg-white/20 backdrop-blur-sm"
