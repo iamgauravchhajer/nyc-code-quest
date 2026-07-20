@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { signUpUser } from '../api/auth';
+import { useAuth } from '../context/AuthContext';
 
 export const SignUp = () => {
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,6 +36,7 @@ export const SignUp = () => {
     setLoading(true);
     try {
       const response = await signUpUser(formData.name, formData.email, formData.password, formData.confirmPassword);
+      await refreshAuth();
       alert(response.message || 'Account created successfully!');
       navigate('/onboarding');
     } catch (err) {

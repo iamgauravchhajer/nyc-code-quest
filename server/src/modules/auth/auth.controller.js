@@ -5,6 +5,8 @@ import ApiResponse from "../../shared/utils/ApiResponse.util.js";
 import { COOKIE_CONFIG, ORG_COOKIE_CONFIG } from "../../shared/constants/tokens.constants.js";
 import sanitizeUser from "../../shared/utils/user.sanitizer.js";
 import OrganizationDao from "../../shared/dao/organization.dao.js"; 
+import env from "../../shared/config/env.config.js";
+
 
 // class to handle authentication operations
 class AuthController {
@@ -78,6 +80,30 @@ class AuthController {
 
         return ApiResponse(res, 200, "User logged in successfully", { user: sanitizeUser(user) });
 
+    }
+
+    // method to get current logged in user details
+    getMe = async (req, res) => {
+        const user = await this.userDao.findUserByEmail(req.user.email);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+        return ApiResponse(res, 200, "User fetched successfully", { user: sanitizeUser(user) });
+    }
+
+    // method to handle user logout
+    logout = async (req, res) => {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+        res.clearCookie("organization", {
+            httpOnly: true,
+            secure: env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
+        return ApiResponse(res, 200, "User logged out successfully");
     }
 
 }

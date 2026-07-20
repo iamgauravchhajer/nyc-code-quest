@@ -73,7 +73,10 @@ export const ScaledDashboard = ({ children }) => {
   );
 };
 
-export const DashboardMockup = () => {
+export const DashboardMockup = ({ organization }) => {
+  const orgName = organization?.name || 'CareNest';
+  const orgInitial = orgName.charAt(0).toUpperCase();
+
   return (
     <div className="rounded-t-2xl overflow-hidden bg-[#1a1a1c] shadow-[0_-20px_80px_rgba(0,0,0,0.35)] ring-1 ring-white/10 text-left font-sans select-none">
       
@@ -132,9 +135,9 @@ export const DashboardMockup = () => {
             {/* Workspace Badge */}
             <div className="flex items-center gap-2 px-1.5 py-1.5 rounded-lg bg-white/5 border border-white/5 mb-6">
               <div className="w-4 h-4 rounded bg-[#e8553f] flex items-center justify-center text-[9px] text-white font-bold select-none shrink-0">
-                C
+                {orgInitial}
               </div>
-              <span className="text-[10px] text-white/80 font-medium truncate">CareNest</span>
+              <span className="text-[10px] text-white/80 font-medium truncate">{orgName}</span>
             </div>
 
             {/* Sidebar Navigation */}
@@ -188,11 +191,11 @@ export const DashboardMockup = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-[#e8553f] flex items-center justify-center text-sm text-white font-bold shadow-md">
-                C
+                {orgInitial}
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5">
-                  CareNest Workspace
+                  {orgName} Workspace
                   <span className="text-[8px] bg-white/10 text-white/60 px-1.5 py-0.5 rounded">Pro</span>
                 </h2>
                 <p className="text-[10px] text-white/45">Search discovery engine configuration active</p>

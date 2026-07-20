@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '../../components/dashboard/PageHeader';
 import { Modal } from '../../components/dashboard/Modal';
@@ -94,7 +95,9 @@ export const Tables = () => {
 const AddTableModal = ({ isOpen, onClose, onAdd }) => {
   const [form, setForm] = useState({ number: 'T-', capacity: 2 });
 
-  useEffect(() => { if (isOpen) setForm({ number: 'T-', capacity: 2 }); }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) setForm({ number: 'T-', capacity: 2 });
+  }, [isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

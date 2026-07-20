@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { Logo } from '../components/Logo';
+import { useAuth } from '../context/AuthContext';
+
 
 /* ─── Step metadata ──────────────────────────────────────────── */
 const STEPS = [
@@ -86,6 +88,7 @@ function StyledSelect({ icon: Icon, children, className = '', ...props }) {
 /* ─── Main component ─────────────────────────────────────────── */
 export const Onboarding = () => {
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState('forward');
   const [visible, setVisible] = useState(true);
@@ -176,6 +179,7 @@ export const Onboarding = () => {
         }
       }
       if (currentForm.website && currentForm.website.trim()) {
+        // eslint-disable-next-line no-useless-escape
         const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
         if (!urlRegex.test(currentForm.website.trim())) {
           errs.website = 'Invalid website URL format';
@@ -311,6 +315,7 @@ export const Onboarding = () => {
         };
         try {
           await axios.post('/api/organizations', payload, { withCredentials: true });
+          await refreshAuth();
           setDone(true);
           setTimeout(() => navigate('/'), 2400);
         } catch (err) {
@@ -324,7 +329,7 @@ export const Onboarding = () => {
       })();
       return currentForm;
     });
-  }, [navigate]);
+  }, [navigate, refreshAuth]);
 
   const current = STEPS[step - 1];
   const progress = Math.round((step / TOTAL) * 100);

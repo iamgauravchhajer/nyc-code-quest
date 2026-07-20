@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingBag, Clock, CheckCircle2, IndianRupee, UtensilsCrossed } from 'lucide-react';
 import { StatCard } from '../../components/dashboard/StatCard';
 import { Badge } from '../../components/dashboard/Badge';

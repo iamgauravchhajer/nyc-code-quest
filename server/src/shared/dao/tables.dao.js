@@ -41,10 +41,17 @@ class TableDao {
 
     }
 
+    // method to find a table by its number in an organization
+    async findTableByNumber(organizationId, tableNumber) {
+
+        return await Table.findOne({ organization: organizationId, tableNumber });
+
+    }
+
     // method to find all tables
     async findAllTables(organizationId) {
 
-        return await Table.find({ organization: organizationId, isActive: true });
+        return await Table.find({ organization: organizationId });
 
     }
 

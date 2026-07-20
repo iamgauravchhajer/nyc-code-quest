@@ -19,6 +19,13 @@ const tableSchema = new mongoose.Schema(
             unique: true,
         },
 
+        capacity: {
+            type: Number,
+            required: true,
+            min: 1,
+            default: 4,
+        },
+
         status: {
             type: String,
             enum: ["available", "occupied", "reserved", "cleaning"],

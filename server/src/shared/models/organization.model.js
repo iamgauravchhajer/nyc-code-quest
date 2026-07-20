@@ -1,5 +1,9 @@
 // importing modules
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import { TOKEN_EXPIRES_IN } from "../constants/tokens.constants.js";
+import env from "../config/env.config.js";
+
 
 // defining organization schema
 const organizationSchema = new mongoose.Schema(

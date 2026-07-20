@@ -1,4 +1,3 @@
-import React from 'react';
 
 const CONFIG = {
   pending:   { bg: 'bg-amber-50',   text: 'text-amber-700',  ring: 'ring-amber-200',  dot: 'bg-amber-400',  label: 'Pending' },

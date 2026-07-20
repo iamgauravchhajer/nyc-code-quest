@@ -13,17 +13,14 @@ function organizationMiddleware(req, res, next) {
             throw new ApiError(404, "Organization not found in cookies");
         }
 
-        const token = jwt.sign({ organizationId: organization._id }, env.JWT_SECRET, {
-            expiresIn: env.JWT_EXPIRES_IN || "7d",
-        });
+        const decoded = jwt.verify(organization, env.JWT_SECRET);
 
-        req.organization = token;
+        req.organization = decoded;
+        next();
 
     } catch (err) {
         return next(err);
     }
-
-    return token;
 }
 
 export default organizationMiddleware;

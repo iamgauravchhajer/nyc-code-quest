@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText } from 'lucide-react';
 import { PageHeader } from '../../components/dashboard/PageHeader';
 import { Badge } from '../../components/dashboard/Badge';

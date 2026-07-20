@@ -6,6 +6,8 @@ import organizationRouter from "../../modules/organization/organization.router.j
 import menuCategoryRouter from "../../modules/menuCategory/menuCategory.router.js";
 import menuItemsRouter from "../../modules/menuItems/menuItems.router.js";
 import tablesRouter from "../../modules/tables/tables.router.js";
+import menuRouter from "../../modules/menu/menu.router.js";
+import orderRouter from "../../modules/order/order.router.js";
 
 // creating router instance
 const router = express.Router();
@@ -21,5 +23,7 @@ router.use("/organizations", organizationRouter);
 router.use("/menu-categories", menuCategoryRouter);
 router.use("/menu-items", menuItemsRouter);
 router.use("/tables", tablesRouter);
+router.use("/menu", menuRouter);
+router.use("/orders", orderRouter);
 
 export default router;

@@ -18,24 +18,27 @@ class TableController {
 
         const organizationId = req.organization.id;
 
-        const { name, description, capacity } = req.body;
+        const { tableNumber, capacity } = req.body;
 
-        // check if table already exists
-        const existingTable = await this.tableDao.findTableByName(name);
+        // check if table number already exists in this organization
+        const existingTable = await this.tableDao.findTableByNumber(organizationId, tableNumber);
 
         if (existingTable) {
 
-            throw new ApiError(409, "Table already exists");
+            throw new ApiError(409, `Table number ${tableNumber} already exists`);
 
         }
 
+        // generate table QR code string
+        const qrCodeUrl = `/menu/${organizationId}?table=${tableNumber}`;
+
         // create new table
         const newTable = await this.tableDao.createTable({
-
             organization: organizationId,
-            name,
-            description,
+            tableNumber,
             capacity,
+            status: "available",
+            qrCode: qrCodeUrl
         });
 
         return ApiResponse(res, 201, "Table created successfully", { table: newTable });
@@ -49,6 +52,9 @@ class TableController {
 
         const tables = await this.tableDao.findAllTables(organizationId);
 
+        // Sort tables by tableNumber ascending
+        tables.sort((a, b) => a.tableNumber - b.tableNumber);
+
         return ApiResponse(res, 200, "Tables retrieved successfully", { tables });
 
     }
@@ -56,19 +62,52 @@ class TableController {
     // update table by ID
     updateTable = async (req, res) => {
 
+        const organizationId = req.organization.id;
+
         const { tableId } = req.params;
 
-        const { name, description, capacity } = req.body;
+        const { tableNumber, capacity, status } = req.body;
 
-        const updatedTable = await this.tableDao.updateTable(tableId, {
+        // check if the tableNumber we are updating to is already occupied by another table
+        if (tableNumber) {
 
-            name,
-            description,
-            capacity,
-        });
+            const existingTable = await this.tableDao.findTableByNumber(organizationId, tableNumber);
+
+            if (existingTable && existingTable._id.toString() !== tableId) {
+
+                throw new ApiError(409, `Table number ${tableNumber} is already in use`);
+
+            }
+
+        }
+
+        const updateData = {};
+
+        if (tableNumber) {
+
+            updateData.tableNumber = tableNumber;
+            updateData.qrCode = `/menu/${organizationId}?table=${tableNumber}`;
+
+        }
+
+        if (capacity) {
+
+            updateData.capacity = capacity;
+
+        }
+
+        if (status) {
+
+            updateData.status = status;
+
+        }
+
+        const updatedTable = await this.tableDao.updateTable(tableId, updateData);
 
         if (!updatedTable) {
+
             throw new ApiError(404, "Table not found");
+
         }
 
         return ApiResponse(res, 200, "Table updated successfully", { table: updatedTable });
@@ -83,7 +122,9 @@ class TableController {
         const deletedTable = await this.tableDao.deleteTable(tableId);
 
         if (!deletedTable) {
+
             throw new ApiError(404, "Table not found");
+
         }
 
         return ApiResponse(res, 200, "Table deleted successfully", { table: deletedTable });

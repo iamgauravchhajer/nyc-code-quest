@@ -2,13 +2,12 @@
 import { body } from "express-validator";
 import validateErrorMiddleware from "../../shared/middlewares/validateError.middleware.js";
 
-// Validation rules for creating a new menu category
+// Validation rules for creating a new table
 const tableValidationRules = [
 
-    body("name")
-        .notEmpty().withMessage("Table name is required")
-        .isString().withMessage("Table name must be a string")
-        .isLength({ max: 100 }).withMessage("Table name must not exceed 100 characters"),
+    body("tableNumber")
+        .notEmpty().withMessage("Table number is required")
+        .isInt({ min: 1 }).withMessage("Table number must be a positive integer"),
 
     body("capacity")
         .notEmpty().withMessage("Table capacity is required")
@@ -18,13 +17,12 @@ const tableValidationRules = [
     validateErrorMiddleware
 ];
 
-// Validation rules for updating a menu category
+// Validation rules for updating a table
 const updateTableValidationRules = [
 
-    body("name")
+    body("tableNumber")
         .optional()
-        .isString().withMessage("Table name must be a string")
-        .isLength({ max: 100 }).withMessage("Table name must not exceed 100 characters"),
+        .isInt({ min: 1 }).withMessage("Table number must be a positive integer"),
 
     body("capacity")
         .optional()

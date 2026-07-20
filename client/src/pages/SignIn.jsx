@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { signInUser } from '../api/auth';
+import { useAuth } from '../context/AuthContext';
 
 export const SignIn = () => {
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,6 +29,7 @@ export const SignIn = () => {
 
     try {
       const response = await signInUser(formData.email, formData.password);
+      await refreshAuth();
       alert(response.message || 'Logged in successfully!');
       navigate('/');
     } catch (err) {

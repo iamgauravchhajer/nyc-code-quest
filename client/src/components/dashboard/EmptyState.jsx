@@ -1,4 +1,3 @@
-import React from 'react';
 
 export const EmptyState = ({ icon: Icon, title, description, action }) => (
   <div className="flex flex-col items-center justify-center py-20 text-center">

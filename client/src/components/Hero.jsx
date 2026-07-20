@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { ArrowUp, Sparkles } from 'lucide-react';
+import { ArrowUp, Sparkles, LogOut, ArrowRight } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { ScaledDashboard, DashboardMockup } from './DashboardMockup';
+import { useAuth } from '../context/AuthContext';
 
 export const Hero = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { organization, isAuthenticated, hasOrganization, logout } = useAuth();
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -72,20 +74,68 @@ export const Hero = () => {
           </span>
         </p>
 
+        {/* Setup Pending Banner */}
+        {isAuthenticated && !hasOrganization && (
+          <div className="animate-fade-up [animation-delay:400ms] mt-5 px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 backdrop-blur-md text-amber-900 text-xs sm:text-sm font-medium flex items-center justify-center gap-2 max-w-md shadow-sm">
+            <Sparkles className="w-4 h-4 text-amber-600 animate-pulse shrink-0" />
+            <span>Finish setting up your restaurant to unlock full features.</span>
+            <Link to="/onboarding" className="underline font-bold hover:text-amber-950 flex items-center gap-0.5 shrink-0 ml-1">
+              Start <ArrowRight className="w-3.5 h-3.5 inline" />
+            </Link>
+          </div>
+        )}
+
         {/* Call to Actions */}
-        <div className="animate-fade-up [animation-delay:460ms] mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            to="/sign-up"
-            className="bg-gray-900 text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-gray-800 hover:shadow-lg transition-all"
-          >
-            Try It Free
-          </Link>
-          <a
-            href="#"
-            className="text-gray-700 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-gray-300 hover:bg-gray-100 transition-colors bg-white/20 backdrop-blur-sm"
-          >
-            Talk to sales
-          </a>
+        <div className="animate-fade-up [animation-delay:460ms] mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3">
+          {isAuthenticated ? (
+            hasOrganization ? (
+              <>
+                <button
+                  onClick={() => alert(`Refreshing search engine statistics for ${organization.name}...`)}
+                  className="bg-gray-900 text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-gray-800 hover:shadow-lg transition-all cursor-pointer"
+                >
+                  Refresh Engine
+                </button>
+                <button
+                  onClick={logout}
+                  className="text-gray-700 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-gray-300 hover:bg-gray-100 transition-colors bg-white/20 backdrop-blur-sm cursor-pointer flex items-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/onboarding"
+                  className="bg-amber-500 text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-amber-600 hover:shadow-lg transition-all animate-pulse"
+                >
+                  Complete Onboarding
+                </Link>
+                <button
+                  onClick={logout}
+                  className="text-gray-700 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-gray-300 hover:bg-gray-100 transition-colors bg-white/20 backdrop-blur-sm cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </>
+            )
+          ) : (
+            <>
+              <Link
+                to="/sign-up"
+                className="bg-gray-900 text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-gray-800 hover:shadow-lg transition-all"
+              >
+                Try It Free
+              </Link>
+              <a
+                href="#"
+                className="text-gray-700 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-gray-300 hover:bg-gray-100 transition-colors bg-white/20 backdrop-blur-sm"
+              >
+                Talk to sales
+              </a>
+            </>
+          )}
         </div>
       </div>
 
@@ -95,7 +145,7 @@ export const Hero = () => {
       {/* Dashboard Mockup Container */}
       <div className="animate-hero-rise [animation-delay:620ms] relative z-0 w-[92%] sm:w-[84%] lg:w-[72%] max-w-4xl mx-auto shrink-0 -mb-10 sm:-mb-20 lg:-mb-32">
         <ScaledDashboard>
-          <DashboardMockup />
+          <DashboardMockup organization={organization} />
         </ScaledDashboard>
       </div>
 
