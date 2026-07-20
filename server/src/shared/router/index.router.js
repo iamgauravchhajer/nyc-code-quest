@@ -3,6 +3,8 @@ import express from "express";
 import authRouter from "../../modules/auth/auth.router.js";
 import ApiResponse from "../utils/ApiResponse.util.js";
 import organizationRouter from "../../modules/organization/organization.router.js";
+import menuCategoryRouter from "../../modules/menuCategory/menuCategory.router.js";
+import menuItemsRouter from "../../modules/menuItems/menuItems.router.js";
 
 // creating router instance
 const router = express.Router();
@@ -15,5 +17,7 @@ router.get("/health", (req, res) => {
 // mounting auth router
 router.use("/auth", authRouter);
 router.use("/organizations", organizationRouter);
+router.use("/menu-categories", menuCategoryRouter);
+router.use("/menu-items", menuItemsRouter);
 
 export default router;
