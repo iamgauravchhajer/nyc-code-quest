@@ -14,7 +14,7 @@ class UserDao {
     // method to create a new user
     async createUser(userData) {
 
-        const user = new this.User.create(userData);
+        const user = await this.User.create(userData);
 
         return user;
 
