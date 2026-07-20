@@ -11,7 +11,14 @@ import env from "../config/env.config.js";
 function applyMiddlewares(app) {
 
     // Apply middlewares based on the environment
-    app.use(helmet()); // Security headers
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+                "img-src": ["'self'", "data:", "https://images.higgs.ai", "https://*.higgs.ai"],
+            },
+        },
+    }));
     app.use(cors({
         origin: env.CORS_ORIGIN,
         credentials: true
