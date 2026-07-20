@@ -11,3 +11,5 @@ export const getMenuCategories = () => api.get('/menu-categories').then(r => r.d
 export const createMenuItem = (data) => api.post('/menu-items', data).then(r => r.data);
 export const updateMenuItem = (id, data) => api.put(`/menu-items/${id}`, data).then(r => r.data);
 export const deleteMenuItem = (id) => api.delete(`/menu-items/${id}`).then(r => r.data);
+export const createMenuCategory = (data) => api.post('/menu-categories', data).then(r => r.data);
+export const deleteMenuCategory = (id) => api.delete(`/menu-categories/${id}`).then(r => r.data);

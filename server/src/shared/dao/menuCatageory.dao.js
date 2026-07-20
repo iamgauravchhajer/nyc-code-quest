@@ -42,16 +42,16 @@ class MenuCategoryDao {
     }
 
     // method to find all menu categories
-    async findAllMenuCategories() {
+    async findAllMenuCategories(organizationId) {
 
-        return await MenuCategory.find();
+        return await MenuCategory.find({ organization: organizationId });
 
     }
 
     // method to find a menu category by its name
-    async findMenuCategoryByName(name) {
+    async findMenuCategoryByName(organizationId, name) {
 
-        return await MenuCategory.findOne({ name });
+        return await MenuCategory.findOne({ organization: organizationId, name });
 
     }
 

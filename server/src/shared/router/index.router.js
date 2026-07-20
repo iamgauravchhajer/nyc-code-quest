@@ -9,6 +9,7 @@ import tablesRouter from "../../modules/tables/tables.router.js";
 import menuRouter from "../../modules/menu/menu.router.js";
 import orderRouter from "../../modules/order/order.router.js";
 import imagekitRouter from "../../modules/imagekit/imagekit.router.js";
+import customerRouter from "../../modules/customer/customer.router.js";
 
 // creating router instance
 const router = express.Router();
@@ -27,5 +28,6 @@ router.use("/tables", tablesRouter);
 router.use("/menu", menuRouter);
 router.use("/orders", orderRouter);
 router.use("/imagekit", imagekitRouter);
+router.use("/customers", customerRouter);
 
 export default router;

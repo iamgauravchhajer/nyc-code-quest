@@ -21,7 +21,7 @@ class MenuCategoryController {
         const { name, description } = req.body;
 
         // check if menu category already exists
-        const existingMenuCategory = await this.menuCategoryDao.findMenuCategoryByName(name);
+        const existingMenuCategory = await this.menuCategoryDao.findMenuCategoryByName(organizationId, name);
 
         if (existingMenuCategory) {
 
@@ -45,7 +45,9 @@ class MenuCategoryController {
     // method to get all menu categories
     getAllMenuCategories = async (req, res) => {
 
-        const menuCategories = await this.menuCategoryDao.findAllMenuCategories();
+        const organizationId = req.organization.id;
+
+        const menuCategories = await this.menuCategoryDao.findAllMenuCategories(organizationId);
 
         return ApiResponse(res, 200, "Menu categories retrieved successfully", { menuCategories });
 

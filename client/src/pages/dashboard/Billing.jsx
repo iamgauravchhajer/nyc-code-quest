@@ -1,88 +1,175 @@
 import { useState, useEffect } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, CreditCard, DollarSign, CheckCircle2, AlertTriangle, Printer } from 'lucide-react';
 import { PageHeader } from '../../components/dashboard/PageHeader';
 import { Badge } from '../../components/dashboard/Badge';
 import { StatCard } from '../../components/dashboard/StatCard';
 import { Modal } from '../../components/dashboard/Modal';
 import { DataTable } from '../../components/dashboard/DataTable';
-
-const INITIAL_BILLS = [
-  { id: 'INV-2042', orderId: 'ORD-1040', customer: 'Rohan Das', subtotal: 2000, tax: 100, discount: 0, total: 2100, method: 'Card', status: 'paid' },
-  { id: 'INV-2041', orderId: 'ORD-1039', customer: 'Sneha Iyer', subtotal: 400, tax: 20, discount: 40, total: 380, method: 'UPI', status: 'paid' },
-  { id: 'INV-2040', orderId: 'ORD-1038', customer: 'Karthik V.', subtotal: 1600, tax: 80, discount: 0, total: 1680, method: 'Cash', status: 'paid' },
-  { id: 'INV-2039', orderId: 'ORD-1034', customer: 'Neha Patel', subtotal: 666, tax: 34, discount: 0, total: 700, method: 'Pending', status: 'pending' },
-  { id: 'INV-2038', orderId: 'ORD-1033', customer: 'Rajesh Kumar', subtotal: 428, tax: 22, discount: 0, total: 450, method: 'Pending', status: 'pending' },
-];
-
-const UNBILLED_ORDERS = [
-  { id: 'ORD-1042', customer: 'Arjun Sharma', items: [{ n: 'Paneer Tikka', p: 320, q: 1 }, { n: 'Dal Makhani', p: 280, q: 2 }], subtotal: 880 },
-];
+import { getOrders, changeOrderPayment, changeOrderStatus } from '../../api/orders';
 
 export const Billing = () => {
-  const [bills, setBills] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [selectedOrderToPay, setSelectedOrderToPay] = useState(null);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const t = setTimeout(() => { setBills(INITIAL_BILLS); setLoading(false); }, 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  const handleMarkPaid = (id) => {
-    if (!window.confirm('Mark this bill as paid?')) return;
-    setBills(bills.map(b => b.id === id ? { ...b, status: 'paid', method: 'Cash' } : b));
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await getOrders();
+      setOrders(res.data?.orders || res.orders || []);
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch billing and invoice records.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredBills = activeTab === 'All' ? bills : bills.filter(b => b.status === activeTab.toLowerCase());
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const handleProcessPayment = async (orderId, method) => {
+    try {
+      // 1. Mark order payment as paid
+      await changeOrderPayment(orderId, { 
+        paymentStatus: 'paid', 
+        paymentMethod: method.toLowerCase() 
+      });
+
+      // 2. Mark order status as completed (which releases table to available)
+      await changeOrderStatus(orderId, 'completed');
+
+      alert('Payment processed successfully and table released!');
+      fetchOrders();
+      setPayModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to process payment.');
+    }
+  };
+
+  const unpaidOrders = orders.filter(o => o.paymentStatus !== 'paid');
+  const paidOrders = orders.filter(o => o.paymentStatus === 'paid');
+
+  const filteredBills = activeTab === 'All' 
+    ? orders 
+    : orders.filter(o => o.paymentStatus === activeTab.toLowerCase());
   
-  const totalRevenue = bills.filter(b => b.status === 'paid').reduce((acc, b) => acc + b.total, 0);
-  const pendingCount = bills.filter(b => b.status === 'pending').length;
+  const totalRevenue = paidOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+  const pendingCount = unpaidOrders.length;
 
   const columns = [
-    { key: 'id', label: 'Invoice' },
-    { key: 'orderId', label: 'Order ID' },
-    { key: 'customer', label: 'Customer' },
-    { key: 'subtotal', label: 'Subtotal', render: (row) => <span>₹{row.subtotal}</span> },
-    { key: 'tax', label: 'Tax', render: (row) => <span>₹{row.tax}</span> },
-    { key: 'discount', label: 'Discount', render: (row) => <span>₹{row.discount}</span> },
-    { key: 'total', label: 'Total', render: (row) => <span className="font-bold">₹{row.total}</span> },
-    { key: 'method', label: 'Method' },
-    { key: 'status', label: 'Status', render: (row) => <Badge status={row.status} /> },
-    {
-      key: 'actions', label: 'Actions',
+    { 
+      key: 'orderNumber', 
+      label: 'Invoice / Order ID',
       render: (row) => (
-        row.status === 'pending' ? (
-          <button onClick={() => handleMarkPaid(row.id)} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold cursor-pointer">
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900">{row.orderNumber}</span>
+          <span className="text-[10px] text-gray-400 font-semibold mt-0.5">Created: {new Date(row.createdAt).toLocaleTimeString()}</span>
+        </div>
+      )
+    },
+    { 
+      key: 'table', 
+      label: 'Table',
+      render: (row) => (
+        <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg">
+          T-{row.table?.tableNumber || '?'}
+        </span>
+      )
+    },
+    {
+      key: 'items', label: 'Summary',
+      render: (row) => (
+        <span className="text-xs text-gray-500 font-semibold">
+          {row.items?.map(i => `${i.quantity}x ${i.menuItem?.name || 'Item'}`).join(', ')}
+        </span>
+      )
+    },
+    { 
+      key: 'totalAmount', 
+      label: 'Grand Total', 
+      render: (row) => <span className="font-black text-gray-900 text-sm">₹{row.totalAmount}</span> 
+    },
+    { 
+      key: 'paymentMethod', 
+      label: 'Method',
+      render: (row) => (
+        <span className="text-xs font-bold uppercase text-gray-500">
+          {row.paymentMethod || '—'}
+        </span>
+      )
+    },
+    { 
+      key: 'paymentStatus', 
+      label: 'Payment Status', 
+      render: (row) => (
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ${
+          row.paymentStatus === 'paid' 
+            ? 'bg-emerald-50 ring-emerald-250 text-emerald-700' 
+            : 'bg-rose-50 ring-rose-250 text-rose-700'
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${row.paymentStatus === 'paid' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+          {row.paymentStatus?.toUpperCase() || 'PENDING'}
+        </span>
+      )
+    },
+    {
+      key: 'actions', label: 'Checkout Action',
+      render: (row) => (
+        row.paymentStatus !== 'paid' ? (
+          <button 
+            onClick={() => { setSelectedOrderToPay(row); setPayModalOpen(true); }} 
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+          >
             Mark Paid
           </button>
         ) : (
-          <span className="text-xs text-gray-400 font-semibold">Done</span>
+          <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-bold border border-slate-100 bg-slate-50 px-2 py-0.5 rounded-lg">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Complete
+          </span>
         )
       )
     }
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 pb-12 animate-fade-up">
       <PageHeader 
-        title="Billing & Payments" 
-        action={{ label: 'Generate Bill', icon: FileText, onClick: () => setModalOpen(true) }}
+        title="Billing & Invoices" 
+        action={{ label: 'Checkout Order', icon: FileText, onClick: () => setModalOpen(true) }}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard title="Total Revenue" value={`₹${totalRevenue}`} icon={FileText} color="emerald" />
-        <StatCard title="Pending Invoices" value={pendingCount} icon={FileText} color="amber" />
-        <StatCard title="Paid Invoices" value={bills.length - pendingCount} icon={FileText} color="indigo" />
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+
+      {/* Financial Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-up">
+        <StatCard title="Total Collected Revenue" value={`₹${totalRevenue}`} icon={DollarSign} color="emerald" />
+        <StatCard title="Pending Unpaid Invoices" value={pendingCount} icon={CreditCard} color="amber" />
+        <StatCard title="Total Invoices Generated" value={orders.length} icon={FileText} color="indigo" />
       </div>
 
+      {/* Tabs Filter */}
       <div className="flex gap-1.5 border-b border-gray-100 pb-2">
         {['All', 'Pending', 'Paid'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-              activeTab === tab ? 'bg-indigo-600 text-white' : 'bg-gray-150 text-gray-600 hover:bg-gray-200'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === tab 
+                ? 'bg-indigo-600 text-white shadow-md' 
+                : 'bg-slate-50 border border-slate-200 text-gray-500 hover:bg-slate-100 hover:text-gray-800'
             }`}
           >
             {tab}
@@ -96,78 +183,106 @@ export const Billing = () => {
         loading={loading}
       />
 
-      <GenerateBillModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={(b) => {
-        setBills([{ ...b, id: `INV-${Date.now().toString().slice(-4)}`, status: 'paid' }, ...bills]);
-        setModalOpen(false);
-      }} />
+      {/* Checkout Selection Modal */}
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Select Order for Checkout" size="sm">
+        <div className="space-y-4">
+          <p className="text-xs text-gray-400 font-semibold">Select an active, unpaid dining table order to process payment and release the table.</p>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto bg-slate-50 p-3 rounded-xl border border-slate-200">
+            {unpaidOrders.map(o => (
+              <div 
+                key={o._id} 
+                className="flex items-center justify-between p-3 bg-white border border-slate-250/50 rounded-xl hover:border-indigo-400 cursor-pointer transition-all hover:shadow-sm"
+                onClick={() => {
+                  setSelectedOrderToPay(o);
+                  setModalOpen(false);
+                  setPayModalOpen(true);
+                }}
+              >
+                <div>
+                  <span className="font-extrabold text-gray-900 text-sm">{o.orderNumber}</span>
+                  <span className="block text-[11px] font-bold text-gray-500 mt-0.5">Table T-{o.table?.tableNumber || '?'}</span>
+                </div>
+                <span className="font-black text-indigo-700 text-sm">₹{o.totalAmount}</span>
+              </div>
+            ))}
+            {unpaidOrders.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-4">No unpaid orders in the system.</p>
+            )}
+          </div>
+          <div className="flex justify-end pt-2">
+            <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-150 hover:bg-gray-200 rounded-xl cursor-pointer">Close</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Payment Processing Modal */}
+      {selectedOrderToPay && (
+        <Modal isOpen={payModalOpen} onClose={() => setPayModalOpen(false)} title={`Process Payment: ${selectedOrderToPay.orderNumber}`} size="md">
+          <PaymentForm 
+            order={selectedOrderToPay} 
+            onPay={handleProcessPayment} 
+            onClose={() => setPayModalOpen(false)} 
+          />
+        </Modal>
+      )}
     </div>
   );
 };
 
-const GenerateBillModal = ({ isOpen, onClose, onSave }) => {
-  const [order] = useState(UNBILLED_ORDERS[0]);
-  const [taxPct, setTaxPct] = useState(5);
-  const [discount, setDiscount] = useState(0);
+const PaymentForm = ({ order, onPay, onClose }) => {
   const [method, setMethod] = useState('Cash');
 
-  const subtotal = order?.subtotal || 0;
-  const taxAmt = Math.round((subtotal * taxPct) / 100);
-  const total = subtotal + taxAmt - discount;
+  const subtotal = order.totalAmount || 0;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ orderId: order.id, customer: order.customer, subtotal, tax: taxAmt, discount, total, method });
+    onPay(order._id, method);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Generate Bill" size="md">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="bg-slate-50 p-3 rounded-lg border border-gray-200 text-xs space-y-1">
-          <div className="flex justify-between font-bold border-b border-gray-200 pb-1 mb-1">
-            <span>Order {order.id} ({order.customer})</span>
-            <span>Subtotal: ₹{subtotal}</span>
-          </div>
-          {order.items.map((i, idx) => (
-            <div key={idx} className="flex justify-between text-gray-600">
-              <span>{i.q}x {i.n}</span>
-              <span>₹{i.p * i.q}</span>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="bg-slate-50 p-4 rounded-xl border border-gray-250/50 text-xs space-y-2">
+        <div className="flex justify-between font-black border-b border-gray-250 pb-2 mb-2">
+          <span className="text-gray-900 text-sm">Table T-{order.table?.tableNumber || '?'} Order Details</span>
+          <span className="text-indigo-700 text-sm">Amount due: ₹{subtotal}</span>
+        </div>
+        <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
+          {order.items?.map((item, idx) => (
+            <div key={idx} className="flex justify-between items-center text-gray-600 font-semibold">
+              <span>{item.quantity}x {item.menuItem?.name || 'Item'}</span>
+              <span>₹{(item.price || 0) * item.quantity}</span>
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Tax (%)</label>
-            <input type="number" value={taxPct} onChange={e => setTaxPct(Number(e.target.value))} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Discount (₹)</label>
-            <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm" />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Payment Method</label>
+          <select 
+            value={method} 
+            onChange={e => setMethod(e.target.value)} 
+            className="w-full px-4 py-2.5 bg-slate-50 border border-gray-250 rounded-xl text-sm font-semibold cursor-pointer"
+          >
+            <option value="Cash">💵 Cash</option>
+            <option value="Card">💳 Card</option>
+            <option value="UPI">⚡ UPI</option>
+            <option value="Online">🌐 Online</option>
+          </select>
         </div>
+        <div className="w-full bg-indigo-50 border border-indigo-200/50 rounded-xl p-3.5 text-right shadow-sm flex flex-col justify-center">
+          <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest block">Total Payable</span>
+          <span className="text-2xl font-black text-indigo-700 mt-0.5">₹{subtotal}</span>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Payment Method</label>
-            <select value={method} onChange={e => setMethod(e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm">
-              <option value="Cash">Cash</option>
-              <option value="Card">Card</option>
-              <option value="UPI">UPI</option>
-            </select>
-          </div>
-          <div className="flex items-end">
-            <div className="w-full bg-slate-50 border border-gray-200 rounded-lg p-2 text-right">
-              <span className="text-xs text-gray-500 block">Grand Total</span>
-              <span className="text-lg font-bold text-gray-900">₹{total}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-100">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer">Cancel</button>
-          <button type="submit" className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg cursor-pointer">Generate Invoice</button>
-        </div>
-      </form>
-    </Modal>
+      <div className="flex justify-end gap-2.5 pt-4 border-t border-gray-150">
+        <button type="button" onClick={onClose} className="px-4 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl cursor-pointer">Cancel</button>
+        <button type="submit" className="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer">
+          <Printer className="w-4 h-4" />
+          Complete Checkout
+        </button>
+      </div>
+    </form>
   );
 };

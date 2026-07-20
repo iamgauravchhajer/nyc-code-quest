@@ -1,70 +1,125 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search, ShoppingBag, ClipboardList, Utensils, IndianRupee, Clock, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '../../components/dashboard/PageHeader';
 import { Badge } from '../../components/dashboard/Badge';
 import { Modal } from '../../components/dashboard/Modal';
 import { DataTable } from '../../components/dashboard/DataTable';
+import { getOrders, createOrder, changeOrderStatus } from '../../api/orders';
+import { getTables, createTable } from '../../api/tables';
+import { getMenuItems } from '../../api/menu';
+import { SearchableSelect } from '../../components/dashboard/SearchableSelect';
+import { AddTableModal } from './Tables';
 
-const INITIAL_ORDERS = [
-  { id: 'ORD-1042', type: 'Dine-In', customer: 'Arjun Sharma', table: 'T-4', items: [{ name: 'Paneer Tikka', qty: 1 }, { name: 'Dal Makhani', qty: 2 }], total: 1250, status: 'cooking', time: '5m ago' },
-  { id: 'ORD-1041', type: 'Takeaway', customer: 'Priya Mehta', table: '-', items: [{ name: 'Chicken 65', qty: 2 }], total: 640, status: 'ready', time: '12m ago' },
-  { id: 'ORD-1040', type: 'Dine-In', customer: 'Rohan Das', table: 'T-7', items: [{ name: 'Chicken Biryani', qty: 3 }, { name: 'Masala Chai', qty: 2 }], total: 2100, status: 'served', time: '25m ago' },
-  { id: 'ORD-1039', type: 'Delivery', customer: 'Sneha Iyer', table: '-', items: [{ name: 'Fish Curry', qty: 1 }], total: 380, status: 'completed', time: '42m ago' },
-  { id: 'ORD-1038', type: 'Dine-In', customer: 'Karthik V.', table: 'T-2', items: [{ name: 'Butter Naan', qty: 4 }], total: 1680, status: 'completed', time: '1h ago' },
-  { id: 'ORD-1037', type: 'Dine-In', customer: 'Amit Singh', table: 'T-1', items: [{ name: 'Jeera Rice', qty: 1 }], total: 450, status: 'pending', time: '2m ago' },
-  { id: 'ORD-1036', type: 'Takeaway', customer: 'Meera K.', table: '-', items: [{ name: 'Gulab Jamun', qty: 5 }], total: 600, status: 'accepted', time: '8m ago' },
-  { id: 'ORD-1035', type: 'Delivery', customer: 'Vikram B.', table: '-', items: [{ name: 'Cold Coffee', qty: 2 }], total: 360, status: 'cancelled', time: '1.5h ago' },
-  { id: 'ORD-1034', type: 'Dine-In', customer: 'Neha Patel', table: 'T-8', items: [{ name: 'Paneer Butter Masala', qty: 2 }], total: 700, status: 'served', time: '30m ago' },
-  { id: 'ORD-1033', type: 'Dine-In', customer: 'Rajesh Kumar', table: 'T-5', items: [{ name: 'Rasmalai', qty: 3 }], total: 450, status: 'completed', time: '2h ago' },
-];
-
-const TABS = ['All', 'Pending', 'Accepted', 'Cooking', 'Ready', 'Served', 'Completed', 'Cancelled'];
+const TABS = ['All', 'Pending', 'Preparing', 'Served', 'Completed', 'Cancelled'];
 
 export const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const [tables, setTables] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
+  const [tableModalOpen, setTableModalOpen] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [ordersRes, tablesRes, menuRes] = await Promise.all([
+        getOrders(),
+        getTables(),
+        getMenuItems()
+      ]);
+      
+      setOrders(ordersRes.data?.orders || ordersRes.orders || []);
+      setTables(tablesRes.data?.tables || tablesRes.tables || []);
+      setMenuItems(menuRes.data?.menuItems || menuRes.menuItems || []);
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load orders, tables, or menu items from the server.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const t = setTimeout(() => { setOrders(INITIAL_ORDERS); setLoading(false); }, 300);
-    return () => clearTimeout(t);
+    loadData();
   }, []);
 
-  const handleStatusChange = (id, newStatus) => {
-    setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const res = await changeOrderStatus(id, newStatus);
+      const updated = res.data?.order || res.order;
+      setOrders(orders.map(o => o._id === id ? { ...o, ...updated } : o));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to update order status.');
+    }
   };
 
-  const handleDelete = (row) => {
-    if (!window.confirm('Delete this order?')) return;
-    setOrders(orders.filter(o => o.id !== row.id));
-  };
-
-  const filteredOrders = activeTab === 'All' ? orders : orders.filter(o => o.status.toLowerCase() === activeTab.toLowerCase());
+  const filteredOrders = activeTab === 'All' 
+    ? orders 
+    : orders.filter(o => o.status?.toLowerCase() === activeTab.toLowerCase());
 
   const columns = [
-    { key: 'id', label: 'Order ID', render: (row) => <span className="font-semibold text-indigo-600">{row.id}</span> },
-    { key: 'type', label: 'Type' },
-    { key: 'customer', label: 'Customer' },
-    { key: 'table', label: 'Table' },
-    {
-      key: 'items', label: 'Items',
+    { 
+      key: 'orderNumber', 
+      label: 'Order ID', 
+      render: (row) => <span className="font-bold text-indigo-600 text-sm tracking-wide">{row.orderNumber}</span> 
+    },
+    { 
+      key: 'table', 
+      label: 'Table',
       render: (row) => (
-        <span className="text-xs text-gray-500">
-          {row.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+        <span className="font-semibold text-gray-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg text-xs">
+          T-{row.table?.tableNumber || '?'}
         </span>
       )
     },
-    { key: 'total', label: 'Total', render: (row) => <span>₹{row.total}</span> },
-    { key: 'status', label: 'Status', render: (row) => <Badge status={row.status} /> },
     {
-      key: 'updateStatus', label: 'Change Status',
+      key: 'items', label: 'Ordered Items',
+      render: (row) => (
+        <div className="flex flex-col gap-1 max-w-xs">
+          {row.items?.map((item, idx) => (
+            <div key={idx} className="flex justify-between items-center text-xs text-gray-500">
+              <span className="font-medium truncate mr-2">{item.menuItem?.name || 'Unknown Item'}</span>
+              <span className="font-bold text-gray-800 bg-gray-50 border border-gray-150 px-1.5 py-0.2 rounded-md shrink-0">x{item.quantity}</span>
+            </div>
+          ))}
+        </div>
+      )
+    },
+    { 
+      key: 'totalAmount', 
+      label: 'Total Amount', 
+      render: (row) => <span className="font-black text-gray-900">₹{row.totalAmount}</span> 
+    },
+    {
+      key: 'paymentStatus',
+      label: 'Payment',
+      render: (row) => (
+        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black border ${
+          row.paymentStatus === 'paid' 
+            ? 'bg-green-50 border-green-200 text-green-700' 
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
+          {row.paymentStatus}
+        </span>
+      )
+    },
+    { 
+      key: 'status', 
+      label: 'Status Badge', 
+      render: (row) => <Badge status={row.status} /> 
+    },
+    {
+      key: 'updateStatus', label: 'Action & Status',
       render: (row) => (
         <select
           value={row.status}
-          onChange={(e) => handleStatusChange(row.id, e.target.value)}
-          className="bg-slate-50 border border-gray-250 rounded px-2 py-1 text-xs focus:outline-none"
+          onChange={(e) => handleStatusChange(row._id, e.target.value)}
+          className="bg-slate-50 border border-gray-250 rounded-xl px-2 py-1.5 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 cursor-pointer transition-all"
         >
           {TABS.filter(t => t !== 'All').map(t => (
             <option key={t} value={t.toLowerCase()}>{t}</option>
@@ -75,63 +130,109 @@ export const Orders = () => {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 pb-12 animate-fade-up">
       <PageHeader 
         title="Order Management" 
         action={{ label: 'New Order', icon: Plus, onClick: () => setModalOpen(true) }}
       />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-2 scroll-hide border-b border-gray-100">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              activeTab === tab ? 'bg-indigo-600 text-white' : 'bg-gray-150 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
+
+      {/* Tabs Filter Section */}
+      <div className="flex gap-1.5 overflow-x-auto pb-2 scroll-hide border-b border-gray-150">
+        {TABS.map(tab => {
+          const count = tab === 'All' ? orders.length : orders.filter(o => o.status?.toLowerCase() === tab.toLowerCase()).length;
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === tab 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'bg-slate-50 border border-slate-200 text-gray-500 hover:bg-slate-100 hover:text-gray-800'
+              }`}
+            >
+              {tab} ({count})
+            </button>
+          );
+        })}
       </div>
 
       <DataTable 
         columns={columns} 
         data={filteredOrders} 
         loading={loading}
-        onDelete={handleDelete}
       />
 
-      <NewOrderModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={(o) => {
-        setOrders([{ ...o, id: `ORD-${Date.now().toString().slice(-4)}`, status: 'pending', time: 'Just now' }, ...orders]);
-        setModalOpen(false);
-      }} />
+      <NewOrderModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        tables={tables}
+        menuItems={menuItems}
+        onCreateTable={() => setTableModalOpen(true)}
+        onSave={async (o) => {
+          try {
+            const res = await createOrder({
+              tableId: o.tableId,
+              items: o.items.map(i => ({ menuItemId: i._id, quantity: i.qty }))
+            });
+            const newOrder = res.data?.order || res.order;
+            // Fetch fresh list to ensure relationships are fully loaded and formatted
+            loadData();
+            setModalOpen(false);
+          } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Failed to place new order.');
+          }
+        }} 
+      />
+
+      <AddTableModal
+        isOpen={tableModalOpen}
+        onClose={() => setTableModalOpen(false)}
+        onAdd={async (t) => {
+          try {
+            const res = await createTable({ 
+              tableNumber: Number(t.tableNumber), 
+              capacity: Number(t.capacity) 
+            });
+            const newTable = res.data?.table || res.table;
+            setTables([...tables, newTable]);
+            setTableModalOpen(false);
+          } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Failed to create table. Remember Table Number must be a positive integer and unique.');
+          }
+        }}
+      />
     </div>
   );
 };
 
-const NewOrderModal = ({ isOpen, onClose, onSave }) => {
-  const [form, setForm] = useState({ type: 'Dine-In', table: '', customer: '' });
+const NewOrderModal = ({ isOpen, onClose, tables, menuItems, onSave, onCreateTable }) => {
+  const [tableId, setTableId] = useState('');
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    if (isOpen) { setForm({ type: 'Dine-In', table: '', customer: '' }); setItems([]); }
-  }, [isOpen]);
+    if (isOpen) {
+      setTableId(tables.find(t => t.status === 'available')?._id || '');
+      setItems([]);
+    }
+  }, [isOpen, tables]);
 
-  const menu = [
-    { name: 'Paneer Tikka', price: 320 },
-    { name: 'Chicken Biryani', price: 420 },
-    { name: 'Butter Naan', price: 70 },
-  ];
-
-  const handleQtyChange = (name, price, qty) => {
-    const ex = items.find(i => i.name === name);
+  const handleQtyChange = (menuItem, qty) => {
+    const ex = items.find(i => i._id === menuItem._id);
     if (qty <= 0) {
-      setItems(items.filter(i => i.name !== name));
+      setItems(items.filter(i => i._id !== menuItem._id));
     } else if (ex) {
-      setItems(items.map(i => i.name === name ? { ...i, qty } : i));
+      setItems(items.map(i => i._id === menuItem._id ? { ...i, qty } : i));
     } else {
-      setItems([...items, { name, price, qty }]);
+      setItems([...items, { ...menuItem, qty }]);
     }
   };
 
@@ -139,61 +240,81 @@ const NewOrderModal = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (items.length === 0) {
-      alert('Select at least one item');
+    if (!tableId) {
+      alert('Please select an available dining table.');
       return;
     }
-    onSave({ ...form, items, total });
+    if (items.length === 0) {
+      alert('Select at least one menu item.');
+      return;
+    }
+    onSave({ tableId, items });
   };
+
+  const availableTables = tables.filter(t => t.status === 'available');
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Order" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Order Type</label>
-            <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm">
-              <option value="Dine-In">Dine-In</option>
-              <option value="Takeaway">Takeaway</option>
-              <option value="Delivery">Delivery</option>
-            </select>
-          </div>
-          {form.type === 'Dine-In' && (
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">Table Number</label>
-              <input required type="text" value={form.table} onChange={e => setForm({...form, table: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm" placeholder="e.g. T-1" />
-            </div>
-          )}
-          <div className={form.type === 'Dine-In' ? 'col-span-1' : 'col-span-2'}>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Customer Name</label>
-            <input required type="text" value={form.customer} onChange={e => setForm({...form, customer: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-250 rounded-lg text-sm" />
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">Select Table</label>
+            <SearchableSelect
+              options={availableTables.map(t => ({ value: t._id, label: `T-${t.tableNumber} (${t.capacity} seats)` }))}
+              value={tableId}
+              onChange={val => setTableId(val)}
+              placeholder="Select available table..."
+              onCreateNew={onCreateTable}
+              createNewText="Add Table"
+            />
           </div>
         </div>
 
-        <div className="space-y-2 pt-2">
-          <p className="text-xs font-bold text-gray-700">Select Items</p>
-          <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-            {menu.map(m => {
-              const current = items.find(i => i.name === m.name)?.qty || 0;
+        <div className="space-y-3 pt-2">
+          <p className="text-sm font-bold text-slate-700 mb-1.5">Select Menu Items</p>
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 border border-slate-100 rounded-xl p-3 bg-slate-50">
+            {menuItems.map(m => {
+              const current = items.find(i => i._id === m._id)?.qty || 0;
               return (
-                <div key={m.name} className="flex justify-between items-center text-sm py-1 border-b border-gray-50">
-                  <span>{m.name} (₹{m.price})</span>
+                <div key={m._id} className="flex justify-between items-center text-sm py-2 border-b border-gray-200/50 last:border-b-0">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-800">{m.name}</span>
+                    <span className="text-xs text-gray-400 font-semibold">₹{m.price}</span>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleQtyChange(m.name, m.price, current - 1)} className="px-2 py-0.5 border border-gray-200 rounded font-bold">-</button>
-                    <span className="w-4 text-center font-semibold">{current}</span>
-                    <button type="button" onClick={() => handleQtyChange(m.name, m.price, current + 1)} className="px-2 py-0.5 border border-gray-200 rounded font-bold">+</button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleQtyChange(m, current - 1)} 
+                      className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="w-5 text-center font-bold text-gray-900">{current}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => handleQtyChange(m, current + 1)} 
+                      className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               );
             })}
+            {menuItems.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-4">No menu items defined yet.</p>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-2 border-t border-gray-100">
-          <span className="text-sm font-semibold text-gray-700">Total: ₹{total}</span>
+        <div className="flex items-center justify-between py-3 border-t border-gray-150 mt-4">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Grand Total</span>
+            <span className="text-lg font-black text-gray-900">₹{total}</span>
+          </div>
           <div className="flex gap-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer">Cancel</button>
-            <button type="submit" disabled={total === 0} className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg cursor-pointer disabled:opacity-50">Place Order</button>
+            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" disabled={total === 0 || !tableId} className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-md hover:shadow-lg cursor-pointer">Place Order</button>
           </div>
         </div>
       </form>

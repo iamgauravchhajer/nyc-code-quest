@@ -18,10 +18,9 @@ class MenuItemController {
 
         const organizationId = req.organization.id;
 
-        const { name, description, price, categoryId, isAvailable } = req.body;
+        const { name, description, price, categoryId, isAvailable, isVeg, preparationTime } = req.body;
 
         // create new menu item
-
         const newMenuItem = await this.menuItemDao.createMenuItem({
 
             organization: organizationId,
@@ -30,6 +29,8 @@ class MenuItemController {
             price,
             category: categoryId,
             isAvailable,
+            isVeg,
+            preparationTime,
         });
 
         return ApiResponse(res, 201, "Menu item created successfully", { menuItem: newMenuItem });
@@ -40,7 +41,7 @@ class MenuItemController {
 
         const organizationId = req.organization.id;
 
-        const menuItems = await this.menuItemDao.findAllMenuItems(organizationId);
+        const menuItems = await this.menuItemDao.findAllRawMenuItems(organizationId);
 
         return ApiResponse(res, 200, "Menu items retrieved successfully", { menuItems });
     }
@@ -50,7 +51,7 @@ class MenuItemController {
 
         const { menuItemId } = req.params;
 
-        const { name, description, price, categoryId, isAvailable } = req.body;
+        const { name, description, price, categoryId, isAvailable, isVeg, preparationTime } = req.body;
 
         const updatedMenuItem = await this.menuItemDao.updateMenuItem(menuItemId, {
 
@@ -59,6 +60,8 @@ class MenuItemController {
             price,
             category: categoryId,
             isAvailable,
+            isVeg,
+            preparationTime,
         });
 
         if (!updatedMenuItem) {

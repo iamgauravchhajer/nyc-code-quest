@@ -1,7 +1,9 @@
 // Importing modules
+import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.util.js";
 import env from "../config/env.config.js";
 import MenuItem from "../models/menuItem.model.js";
+import MenuCategory from "../models/menuCatageory.model.js";
 
 // Data Access Object (DAO) for MenuItem
 class MenuItemDao {
@@ -40,6 +42,13 @@ class MenuItemDao {
     async deleteMenuItem(menuItemId) {
 
         return await MenuItem.findByIdAndDelete(menuItemId);
+
+    }
+
+    // method to find all menu items raw
+    async findAllRawMenuItems(organizationId) {
+
+        return await MenuItem.find({ organization: organizationId }).populate("category", "name");
 
     }
 
@@ -86,6 +95,12 @@ class MenuItemDao {
     }
 
     async getMenuGroupedByCategory(categoryId) {
+
+        return await MenuItem.find({ category: categoryId });
+
+    }
+
+    async findMenuItemsByCategory(categoryId) {
 
         return await MenuItem.find({ category: categoryId });
 
