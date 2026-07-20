@@ -4,6 +4,8 @@ import { SignUp } from './pages/SignUp';
 import { SignIn } from './pages/SignIn';
 import { Onboarding } from './pages/Onboarding';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Hero } from './components/Hero';
+import { CoreFeatures } from './components/CoreFeatures';
 
 import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import { Overview } from './pages/dashboard/Overview';
