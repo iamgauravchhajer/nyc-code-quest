@@ -1,6 +1,5 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router';
-import { Hero } from './components/Hero';
-import { CoreFeatures } from './components/CoreFeatures';
+import { LandingPage } from './components/LandingPage';
 import { SignUp } from './pages/SignUp';
 import { SignIn } from './pages/SignIn';
 import { Onboarding } from './pages/Onboarding';
