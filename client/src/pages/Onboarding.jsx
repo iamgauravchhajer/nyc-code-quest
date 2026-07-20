@@ -15,74 +15,35 @@ import {
   ImageIcon,
   Hash,
   ChevronRight,
+  Upload,
+  Trash2,
 } from 'lucide-react';
 import axios from 'axios';
+import { Logo } from '../components/Logo';
 
 /* ─── Step metadata ──────────────────────────────────────────── */
 const STEPS = [
-  {
-    id: 1,
-    label: 'General Info',
-    icon: Building2,
-    hint: 'Tell us about your organization',
-    color: 'from-violet-500 to-indigo-500',
-    bg: 'bg-violet-50',
-    ring: 'ring-violet-200',
-  },
-  {
-    id: 2,
-    label: 'Contact Details',
-    icon: Phone,
-    hint: 'How can customers reach you?',
-    color: 'from-sky-500 to-cyan-500',
-    bg: 'bg-sky-50',
-    ring: 'ring-sky-200',
-  },
-  {
-    id: 3,
-    label: 'Address',
-    icon: MapPin,
-    hint: 'Where is your business located?',
-    color: 'from-emerald-500 to-teal-500',
-    bg: 'bg-emerald-50',
-    ring: 'ring-emerald-200',
-  },
-  {
-    id: 4,
-    label: 'Operations',
-    icon: Settings,
-    hint: 'Working hours & preferences',
-    color: 'from-amber-500 to-orange-500',
-    bg: 'bg-amber-50',
-    ring: 'ring-amber-200',
-  },
-  {
-    id: 5,
-    label: 'IDs & Assets',
-    icon: FileText,
-    hint: 'Compliance docs & brand visuals',
-    color: 'from-rose-500 to-pink-500',
-    bg: 'bg-rose-50',
-    ring: 'ring-rose-200',
-  },
+  { id: 1, label: 'General Info',    icon: Building2 },
+  { id: 2, label: 'Contact Details', icon: Phone },
+  { id: 3, label: 'Address',         icon: MapPin },
+  { id: 4, label: 'Operations',      icon: Settings },
+  { id: 5, label: 'IDs & Assets',    icon: FileText },
 ];
 
 const TOTAL = STEPS.length;
 
-/* ─── Reusable field components (defined outside to avoid remount) ── */
 function FieldWrap({ label, hint, required, error, children }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label className="block text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-          {label}
-          {required && <span className="text-rose-400 ml-0.5">*</span>}
+        <label className="block text-xs font-semibold text-gray-700">
+          {label} {required && <span className="text-rose-400">*</span>}
         </label>
         {hint && <span className="text-[10px] text-gray-400">{hint}</span>}
       </div>
       {children}
       {error && (
-        <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1.5">
+        <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1.5 animate-fade-down">
           <span className="w-1 h-1 bg-rose-400 rounded-full shrink-0 inline-block" />
           {error}
         </p>
@@ -95,11 +56,11 @@ function Input({ icon: Icon, className = '', ...props }) {
   return (
     <div className="relative group">
       {Icon && (
-        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-700 transition-colors pointer-events-none" />
+        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-900 transition-colors pointer-events-none" />
       )}
       <input
         {...props}
-        className={`w-full ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-2.5 bg-white/60 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-800 focus:bg-white transition-all ${className}`}
+        className={`w-full ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-2.5 bg-white/50 border border-gray-200/80 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all ${className}`}
       />
     </div>
   );
@@ -109,11 +70,11 @@ function StyledSelect({ icon: Icon, children, className = '', ...props }) {
   return (
     <div className="relative group">
       {Icon && (
-        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-700 transition-colors pointer-events-none" />
+        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-900 transition-colors pointer-events-none" />
       )}
       <select
         {...props}
-        className={`w-full appearance-none ${Icon ? 'pl-10' : 'pl-4'} pr-8 py-2.5 bg-white/60 border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-800 focus:bg-white transition-all cursor-pointer ${className}`}
+        className={`w-full appearance-none ${Icon ? 'pl-10' : 'pl-4'} pr-8 py-2.5 bg-white/50 border border-gray-200/80 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all cursor-pointer ${className}`}
       >
         {children}
       </select>
@@ -164,6 +125,36 @@ export const Onboarding = () => {
 
   const clearErr = useCallback((key) => {
     setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+  }, []);
+
+  const handleFileUpload = useCallback((e, field) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [field]: 'Image size must be less than 2MB',
+      }));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((p) => ({ ...p, [field]: reader.result }));
+      setFieldErrors((prev) => {
+        const n = { ...prev };
+        delete n[field];
+        return n;
+      });
+    };
+    reader.onerror = () => {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [field]: 'Failed to read file',
+      }));
+    };
+    reader.readAsDataURL(file);
   }, []);
 
   // Memoised per-step validator
@@ -237,20 +228,6 @@ export const Onboarding = () => {
         const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
         if (!panRegex.test(currentForm.panNumber.trim().toUpperCase())) {
           errs.panNumber = 'Invalid PAN format';
-        }
-      }
-      if (currentForm.logo && currentForm.logo.trim()) {
-        try {
-          new URL(currentForm.logo.trim());
-        } catch (e) {
-          errs.logo = 'Invalid logo URL format';
-        }
-      }
-      if (currentForm.banner && currentForm.banner.trim()) {
-        try {
-          new URL(currentForm.banner.trim());
-        } catch (e) {
-          errs.banner = 'Invalid banner URL format';
         }
       }
     }
@@ -396,80 +373,69 @@ export const Onboarding = () => {
   /* ─── Main layout ─────────────────────────────────────────── */
   return (
     <div
-      className="h-screen w-screen overflow-hidden flex flex-col font-sans"
+      className="h-screen w-screen overflow-hidden bg-cover bg-center flex flex-col justify-center items-center px-4 relative font-sans"
       style={{
         backgroundImage: `url('https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260611_133301_d5f2a94a-b22e-4e4a-a6b6-eacdddf1f5b0.png&w=1280&q=85')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
       }}
     >
-      <div className="absolute inset-0 bg-black/35 backdrop-blur-[3px]" />
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]" />
 
       {/* ── Cancel / Back Button ─────────────────────────────── */}
-      <div className="absolute top-4 left-4 z-30">
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30">
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/60 backdrop-blur-md ring-1 ring-gray-200 hover:ring-gray-300 text-xs font-semibold text-gray-700 hover:text-gray-900 transition-all cursor-pointer shadow-sm active:scale-95"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/60 backdrop-blur-md ring-1 ring-gray-200 hover:ring-gray-300 text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 transition-all cursor-pointer active:scale-95"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Cancel setup
         </button>
       </div>
 
-      {/* ── Top progress bar ─────────────────────────────────── */}
-      <div className="relative z-20 w-full px-4 pt-5 pb-4">
-        <div className="max-w-[540px] mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className={`w-5 h-5 rounded-md flex items-center justify-center bg-gradient-to-br ${current.color}`}>
-                <current.icon className="w-3 h-3 text-white" />
-              </div>
-              <span className="text-white text-xs font-semibold tracking-wide">
-                {current.label}
-              </span>
-            </div>
-            <span className="text-white/60 text-xs font-medium">
-              {step} / {TOTAL}
-            </span>
-          </div>
-          <div className="h-1 w-full bg-white/15 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full bg-gradient-to-r ${current.color} transition-[width] duration-500 ease-out`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* ── Main content ─────────────────────────────────────── */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-6 overflow-hidden">
+      <main className="relative z-10 w-full max-w-[480px] sm:max-w-[520px] flex flex-col items-center overflow-hidden animate-fade-up">
+
+        {/* Brand header — matches sign-in/sign-up */}
+        <div className="flex flex-col items-center mb-5">
+          <div className="flex items-center gap-2 text-gray-900 mb-1.5">
+            <Logo className="w-6 h-6 sm:w-7 sm:h-7" />
+            <span className="font-bold text-xl sm:text-2xl tracking-tight">Questly</span>
+          </div>
+          <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-yellow-500" /> Set up your restaurant
+          </p>
+        </div>
 
         {/* Card wrapper — handles animation at this level */}
         <div
-          className={`w-full max-w-[540px] bg-white/82 backdrop-blur-2xl border border-white/60 shadow-[0_24px_80px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden ${animClass}`}
-          style={{ maxHeight: 'calc(100vh - 9rem)', transition: 'opacity 0.2s ease' }}
+          className={`w-full bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-2xl overflow-hidden ${animClass}`}
+          style={{ maxHeight: 'calc(100vh - 10rem)', transition: 'opacity 0.2s ease' }}
         >
+          {/* Progress bar */}
+          <div className="h-1 w-full bg-gray-200/60 shrink-0">
+            <div
+              className="h-full bg-gray-900 transition-[width] duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
 
           {/* Scrollable inner area */}
           <div
             ref={scrollAreaRef}
             className="overflow-y-auto scroll-hide"
-            style={{ maxHeight: 'calc(100vh - 9rem)' }}
+            style={{ maxHeight: 'calc(100vh - 10rem - 4px)' }}
           >
             <div className="p-6 sm:p-8">
               {/* Step header */}
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex items-start justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${current.color} shadow-md shrink-0`}
-                  >
-                    <current.icon className="w-5 h-5 text-white" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-900 shrink-0">
+                    <current.icon className="w-4.5 h-4.5 text-white" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                    <p className="text-[11px] text-gray-400 font-medium">
                       Step {step} of {TOTAL}
                     </p>
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 tracking-tight leading-tight">
                       {current.label}
                     </h2>
                   </div>
@@ -544,7 +510,7 @@ export const Onboarding = () => {
                     />
                   </FieldWrap>
 
-                  <FieldWrap label="Website URL" hint="optional" error={fieldErrors.website}>
+                  <FieldWrap label="Website URL" error={fieldErrors.website}>
                     <Input
                       icon={Globe}
                       name="website"
@@ -573,7 +539,7 @@ export const Onboarding = () => {
                     />
                   </FieldWrap>
 
-                  <FieldWrap label="Street Address Line 2" hint="optional" error={fieldErrors.line2}>
+                  <FieldWrap label="Street Address Line 2" error={fieldErrors.line2}>
                     <Input
                       type="text"
                       autoComplete="address-line2"
@@ -700,10 +666,9 @@ export const Onboarding = () => {
                 <div className="space-y-4">
                   <div className={`p-4 rounded-xl ${current.bg} ${current.ring} ring-1 space-y-3.5`}>
                     <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-                      Compliance Numbers{' '}
-                      <span className="normal-case font-normal text-gray-400">(all optional)</span>
+                      Compliance Numbers
                     </p>
-                    <FieldWrap label="GST Number" hint="15 chars" error={fieldErrors.gstNumber}>
+                    <FieldWrap label="GST Number" error={fieldErrors.gstNumber}>
                       <Input
                         icon={Hash}
                         name="gstNumber"
@@ -716,7 +681,7 @@ export const Onboarding = () => {
                         className="uppercase tracking-widest"
                       />
                     </FieldWrap>
-                    <FieldWrap label="FSSAI Number" hint="14 chars" error={fieldErrors.fssaiNumber}>
+                    <FieldWrap label="FSSAI Number" error={fieldErrors.fssaiNumber}>
                       <Input
                         icon={Hash}
                         name="fssaiNumber"
@@ -727,7 +692,7 @@ export const Onboarding = () => {
                         onChange={(e) => { setField('fssaiNumber', e.target.value); clearErr('fssaiNumber'); }}
                       />
                     </FieldWrap>
-                    <FieldWrap label="PAN Number" hint="10 chars" error={fieldErrors.panNumber}>
+                    <FieldWrap label="PAN Number" error={fieldErrors.panNumber}>
                       <Input
                         icon={Hash}
                         name="panNumber"
@@ -741,26 +706,71 @@ export const Onboarding = () => {
                     </FieldWrap>
                   </div>
 
-                  <FieldWrap label="Logo Image URL" hint="optional" error={fieldErrors.logo}>
-                    <Input
-                      icon={ImageIcon}
-                      name="logo"
-                      type="url"
-                      placeholder="https://yourdomain.com/logo.png"
-                      value={form.logo}
-                      onChange={(e) => { setField('logo', e.target.value); clearErr('logo'); }}
-                    />
+                  <FieldWrap label="Logo Image" hint="Max 2MB" error={fieldErrors.logo}>
+                    <div className="flex items-center gap-4">
+                      {form.logo ? (
+                        <div className="relative group w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shrink-0 bg-white">
+                          <img src={form.logo} alt="Logo preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setField('logo', '')}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none outline-none"
+                          >
+                            <Trash2 className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl border border-dashed border-gray-200 bg-white/50 flex items-center justify-center shrink-0">
+                          <ImageIcon className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      <label className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, 'logo')}
+                          className="hidden"
+                        />
+                        <div className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 active:scale-98 transition-all cursor-pointer shadow-sm">
+                          <Upload className="w-3.5 h-3.5" />
+                          {form.logo ? 'Change Logo' : 'Upload Logo'}
+                        </div>
+                      </label>
+                    </div>
                   </FieldWrap>
 
-                  <FieldWrap label="Banner Image URL" hint="optional" error={fieldErrors.banner}>
-                    <Input
-                      icon={ImageIcon}
-                      name="banner"
-                      type="url"
-                      placeholder="https://yourdomain.com/banner.jpg"
-                      value={form.banner}
-                      onChange={(e) => { setField('banner', e.target.value); clearErr('banner'); }}
-                    />
+                  <FieldWrap label="Banner Image" hint="Max 2MB" error={fieldErrors.banner}>
+                    <div className="space-y-3">
+                      {form.banner ? (
+                        <div className="relative group w-full h-24 rounded-xl overflow-hidden border border-gray-200 bg-white">
+                          <img src={form.banner} alt="Banner preview" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setField('banner', '')}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none outline-none"
+                          >
+                            <Trash2 className="w-4.5 h-4.5 text-white" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-24 rounded-xl border border-dashed border-gray-200 bg-white/50 flex flex-col items-center justify-center gap-1.5">
+                          <ImageIcon className="w-6 h-6 text-gray-400" />
+                          <span className="text-[10px] text-gray-400">No banner selected</span>
+                        </div>
+                      )}
+                      <label className="block">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, 'banner')}
+                          className="hidden"
+                        />
+                        <div className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 active:scale-98 transition-all cursor-pointer shadow-sm">
+                          <Upload className="w-3.5 h-3.5" />
+                          {form.banner ? 'Change Banner' : 'Upload Banner'}
+                        </div>
+                      </label>
+                    </div>
                   </FieldWrap>
                 </div>
               )}
@@ -785,7 +795,7 @@ export const Onboarding = () => {
                   <button
                     type="button"
                     onClick={advance}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${current.color} hover:opacity-90 active:scale-[0.97] transition-all cursor-pointer shadow-md`}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
                   >
                     Continue
                     <ArrowRight className="w-4 h-4" />
@@ -795,7 +805,7 @@ export const Onboarding = () => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer shadow-lg disabled:opacity-50 disabled:pointer-events-none"
+                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {loading ? (
                       <>
