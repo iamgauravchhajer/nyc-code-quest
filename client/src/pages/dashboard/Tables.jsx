@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit3, Grid3x3, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Edit3, Grid3x3, CheckCircle, AlertTriangle, RefreshCw, QrCode } from 'lucide-react';
 import { PageHeader } from '../../components/dashboard/PageHeader';
 import { Modal } from '../../components/dashboard/Modal';
 import { Badge } from '../../components/dashboard/Badge';
@@ -51,6 +51,31 @@ export const Tables = () => {
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || 'Failed to delete table.');
+    }
+  };
+
+  const handleDownloadQR = async (tableNumber, qrCodePath) => {
+    try {
+      if (!qrCodePath) {
+        alert('No QR Code URL found for this table.');
+        return;
+      }
+      const fullUrl = window.location.origin + qrCodePath;
+      const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
+      const response = await fetch(apiUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `table_T-${tableNumber}_qr.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to download QR Code.');
     }
   };
 
@@ -183,6 +208,13 @@ export const Tables = () => {
                     >
                       {STATUSES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
                     </select>
+                    <button 
+                      onClick={() => handleDownloadQR(table.tableNumber, table.qrCode)} 
+                      className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl border border-indigo-100 cursor-pointer transition-colors"
+                      title="Download Table QR Code"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                    </button>
                     <button 
                       onClick={() => handleDelete(table._id)} 
                       className="p-2 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-xl border border-red-100 cursor-pointer transition-colors"
