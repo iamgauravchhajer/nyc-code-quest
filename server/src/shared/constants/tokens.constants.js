@@ -2,7 +2,7 @@
 import env from "../config/env.config.js";
 
 // constant token configs
-const COOKIE_CONFIG = {
+export const COOKIE_CONFIG = {
     httpOnly: true,
     secure: env.NODE_ENV === "production", // Use secure cookies in production
     sameSite: "lax",

@@ -4,6 +4,7 @@ const envConstants = {
     MONGO_URI: "mongodb+srv://localhost:27017/nyc",
     SMTP_MAIL: false,
     LOGGER_LEVEL: "info",
+    JWT_SECRET: "your_jwt_secret_key",
 }
 
 export default envConstants;

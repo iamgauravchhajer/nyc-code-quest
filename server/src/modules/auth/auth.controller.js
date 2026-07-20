@@ -2,6 +2,8 @@
 import UserDao from "../../shared/dao/user.dao.js";
 import ApiError from "../../shared/utils/ApiError.util.js";
 import ApiResponse from "../../shared/utils/ApiResponse.util.js";
+import { COOKIE_CONFIG } from "../../shared/constants/tokens.constants.js";
+import sanitizeUser from "../../shared/utils/user.sanitizer.js";
 
 // class to handle authentication operations
 class AuthController {
@@ -29,7 +31,12 @@ class AuthController {
         // create new user
         const newUser = await this.userDao.createUser({ name, email, password });
 
-        return ApiResponse(res, 201, "User registered successfully", { user: newUser });
+        // get the JWT 
+        const jwt = newUser.getJWT();
+
+        res.cookie("token", jwt, COOKIE_CONFIG);
+
+        return ApiResponse(res, 201, "User registered successfully", { user: sanitizeUser(newUser) });
     }
 
     // method to handle user login
@@ -51,7 +58,12 @@ class AuthController {
             throw new ApiError(401, "Invalid email or password");
         }
 
-        return ApiResponse(res, 200, "User logged in successfully", { user });
+        // get the JWT 
+        const jwt = user.getJWT();
+
+        res.cookie("token", jwt, COOKIE_CONFIG);
+
+        return ApiResponse(res, 200, "User logged in successfully", { user: sanitizeUser(user) });
 
     }
 
