@@ -1,0 +1,17 @@
+// iumporting modules
+import express from "express";
+import authRouter from "../../modules/auth/auth.router.js";
+import ApiResponse from "../utils/ApiResponse.util.js";
+
+// creating router instance
+const router = express.Router();
+
+// healthy check route
+router.get("/health", (req, res) => {
+    return ApiResponse(res, 200, "Server is healthy");
+});
+
+// mounting auth router
+router.use("/auth", authRouter);
+
+export default router;
