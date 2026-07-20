@@ -1,11 +1,11 @@
-import React from 'react';
+import { Hero } from './components/Hero';
 
 const App = () => {
   return (
-    <div className='text-3xl font-bold underline'>
-      HI
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      <Hero />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
