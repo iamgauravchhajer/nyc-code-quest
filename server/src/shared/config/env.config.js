@@ -15,6 +15,7 @@ const envSchema = z.object({
     SMTP_MAIL: z.coerce.boolean().default(envConstants.SMTP_MAIL),
     LOGGER_LEVEL: z.string().default(envConstants.LOGGER_LEVEL),
     JWT_SECRET: z.string().default(envConstants.JWT_SECRET),
+    CORS_ORIGIN: z.string().default(envConstants.CORS_ORIGIN),
 });
 
 // Parse and validate environment variables

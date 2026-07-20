@@ -5,6 +5,7 @@ const envConstants = {
     SMTP_MAIL: false,
     LOGGER_LEVEL: "info",
     JWT_SECRET: "your_jwt_secret_key",
+    CORS_ORIGIN: "http://localhost:5173",
 }
 
 export default envConstants;

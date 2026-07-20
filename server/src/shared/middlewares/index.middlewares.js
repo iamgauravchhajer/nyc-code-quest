@@ -12,7 +12,10 @@ function applyMiddlewares(app) {
 
     // Apply middlewares based on the environment
     app.use(helmet()); // Security headers
-    app.use(cors());
+    app.use(cors({
+        origin: env.CORS_ORIGIN,
+        credentials: true
+    }));
     app.use(cookieParser()); // Parse cookies
     app.use(express.json()); // Parse JSON request bodies
     app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
