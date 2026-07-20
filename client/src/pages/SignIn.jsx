@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
+import { signInUser } from '../api/auth';
 
 export const SignIn = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -16,10 +20,20 @@ export const SignIn = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Sign in submitted:', formData);
-    alert(`Logged in successfully as ${formData.email}!`);
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await signInUser(formData.email, formData.password);
+      alert(response.message || 'Logged in successfully!');
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid email or password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +71,12 @@ export const SignIn = () => {
             Welcome back
           </h2>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50/80 backdrop-blur-sm text-red-600 rounded-xl text-xs font-medium border border-red-100/50">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-3.5 sm:space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1 sm:mb-1.5">
@@ -93,9 +113,10 @@ export const SignIn = () => {
 
             <button
               type="submit"
-              className="w-full mt-1.5 py-2.5 sm:py-3 px-4 border border-transparent rounded-xl text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-center"
+              disabled={loading}
+              className="w-full mt-1.5 py-2.5 sm:py-3 px-4 border border-transparent rounded-xl text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 

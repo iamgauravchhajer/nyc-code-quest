@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
+import { signUpUser } from '../api/auth';
 
 export const SignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,14 +22,25 @@ export const SignUp = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match!');
       return;
     }
-    console.log('Sign up submitted:', formData);
-    alert(`Account created successfully for ${formData.name}!`);
+
+    setLoading(true);
+    try {
+      const response = await signUpUser(formData.name, formData.email, formData.password, formData.confirmPassword);
+      alert(response.message || 'Account created successfully!');
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,6 +77,12 @@ export const SignUp = () => {
           <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight mb-4 sm:mb-6 text-center">
             Create your account
           </h2>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50/80 backdrop-blur-sm text-red-600 rounded-xl text-xs font-medium border border-red-100/50">
+              {error}
+            </div>
+          )}
 
           <form className="space-y-3.5 sm:space-y-5" onSubmit={handleSubmit}>
             <div>
@@ -131,9 +152,10 @@ export const SignUp = () => {
 
             <button
               type="submit"
-              className="w-full mt-1.5 py-2.5 sm:py-3 px-4 border border-transparent rounded-xl text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-center"
+              disabled={loading}
+              className="w-full mt-1.5 py-2.5 sm:py-3 px-4 border border-transparent rounded-xl text-xs sm:text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Get started
+              {loading ? 'Creating account...' : 'Get started'}
             </button>
           </form>
 
