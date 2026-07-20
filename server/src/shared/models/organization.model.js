@@ -44,6 +44,8 @@ const organizationSchema = new mongoose.Schema(
             tableCount: Number,
             openingTime: String,
             closingTime: String,
+            currency: String,
+            timezone: String,
         },
 
         logo: String,

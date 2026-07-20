@@ -35,7 +35,7 @@ export const SignUp = () => {
     try {
       const response = await signUpUser(formData.name, formData.email, formData.password, formData.confirmPassword);
       alert(response.message || 'Account created successfully!');
-      navigate('/');
+      navigate('/onboarding');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

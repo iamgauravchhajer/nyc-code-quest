@@ -16,10 +16,10 @@ class OrganizationController {
 
     createOrganization = async (req, res) => {
 
-        const { name, description, phone, website, address, openingTime, closingTime, gstNumber, fssaiNumber, panNumber, logo, banner } = req.body;
+        const { name, type, description, phone, website, address, tableCount, openingTime, closingTime, currency, timezone, gstNumber, fssaiNumber, panNumber, logo, banner } = req.body;
 
         // check if organization already exists
-        const existingOrganization = await this.organizationService.findOrganizationByUser(req.user.id);
+        const existingOrganization = await this.organizationDao.findOrganizationByUser(req.user.id);
 
         if (existingOrganization) {
 
@@ -28,9 +28,10 @@ class OrganizationController {
         }
 
         // create new organization
-        const newOrganization = await this.organizationService.createOrganization({
+        const newOrganization = await this.organizationDao.createOrganization({
             owner: req.user.id,
             name,
+            type,
             description,
             contact: {
                 phone,
@@ -39,8 +40,11 @@ class OrganizationController {
             },
             address,
             settings: {
+                tableCount,
                 openingTime,
                 closingTime,
+                currency,
+                timezone,
             },
             gstNumber,
             fssaiNumber,
@@ -60,7 +64,7 @@ class OrganizationController {
     // method to get organization details
     getOrganizationDetails = async (req, res) => {
 
-        const organization = await this.organizationService.findOrganizationByUser(req.user.id);
+        const organization = await this.organizationDao.findOrganizationByUser(req.user.id);
 
         if (!organization) {
 
@@ -75,9 +79,9 @@ class OrganizationController {
     // method to update organization details
     updateOrganizationDetails = async (req, res) => {
 
-        const { name, description, phone, website, address, openingTime, closingTime, gstNumber, fssaiNumber, panNumber, logo, banner } = req.body;
+        const { name, type, description, phone, website, address, tableCount, openingTime, closingTime, currency, timezone, gstNumber, fssaiNumber, panNumber, logo, banner } = req.body;
 
-        const organization = await this.organizationService.findOrganizationByUser(req.user.id);
+        const organization = await this.organizationDao.findOrganizationByUser(req.user.id);
 
         if (!organization) {
 
@@ -85,8 +89,9 @@ class OrganizationController {
 
         }
 
-        const updatedOrganization = await this.organizationService.updateOrganization(organization._id, {
+        const updatedOrganization = await this.organizationDao.updateOrganization(organization._id, {
             name,
+            type,
             description,
             contact: {
                 phone,
@@ -95,8 +100,11 @@ class OrganizationController {
             },
             address,
             settings: {
+                tableCount,
                 openingTime,
                 closingTime,
+                currency,
+                timezone,
             },
             gstNumber,
             fssaiNumber,
@@ -112,7 +120,7 @@ class OrganizationController {
     // method to delete organization
     deleteOrganization = async (req, res) => {
 
-        const organization = await this.organizationService.findOrganizationByUser(req.user.id);
+        const organization = await this.organizationDao.findOrganizationByUser(req.user.id);
 
         if (!organization) {
 
@@ -120,7 +128,7 @@ class OrganizationController {
 
         }
 
-        await this.organizationService.deleteOrganization(organization._id);
+        await this.organizationDao.deleteOrganization(organization._id);
 
         return ApiResponse(res, 200, "Organization deleted successfully");
 
