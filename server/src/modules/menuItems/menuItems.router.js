@@ -4,7 +4,7 @@ import asyncWrapper from "../../shared/utils/asyncWraper.util.js";
 import authMiddleware from "../../shared/middlewares/auth.middleware.js";
 import organizationMiddleware from "../../shared/middlewares/organization.middleware.js";
 import MenuItemsController from "./menuItems.controller.js";
-import { createMenuItemValidationRules, updateMenuItemValidationRules } from "./menuItems.validator.js";
+import { createMenuItemValidationRules, updateMenuItemValidationRules } from "./menuItem.validator.js";
 
 // Making router instance
 const router = express.Router();

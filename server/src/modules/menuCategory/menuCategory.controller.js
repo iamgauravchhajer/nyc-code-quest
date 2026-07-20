@@ -1,7 +1,7 @@
 // Importing modules
-import MenuCategoryDao from "../../shared/dao/menuCatageory.dao";
-import ApiError from "../../shared/utils/ApiError.util";
-import ApiResponse from "../../shared/utils/ApiResponse.util";
+import MenuCategoryDao from "../../shared/dao/menuCatageory.dao.js";
+import ApiError from "../../shared/utils/ApiError.util.js";
+import ApiResponse from "../../shared/utils/ApiResponse.util.js";
 
 // class for menu category controller
 class MenuCategoryController {

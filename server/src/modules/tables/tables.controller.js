@@ -1,7 +1,7 @@
 // importing modules
 import ApiError from "../../shared/utils/ApiError.util.js";
 import ApiResponse from "../../shared/utils/ApiResponse.util.js";
-import tableDao from "../../shared/dao/table.dao.js";
+import tableDao from "../../shared/dao/tables.dao.js";
 
 // class for table controller
 class TableController {

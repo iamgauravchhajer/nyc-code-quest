@@ -4,7 +4,7 @@ import asyncWrapper from "../../shared/utils/asyncWraper.util.js";
 import authMiddleware from "../../shared/middlewares/auth.middleware.js";
 import organizationMiddleware from "../../shared/middlewares/organization.middleware.js";
 import TablesController from "./tables.controller.js";
-import { createTableValidationRules, updateTableValidationRules } from "./tables.validator.js";
+import { tableValidationRules, updateTableValidationRules } from "./tables.validator.js";
 
 // Making router instance
 const router = express.Router();
@@ -17,7 +17,7 @@ const tablesController = new TablesController();
     @desc Create a new table
     @access Private
 */
-router.post("/", authMiddleware, organizationMiddleware, createTableValidationRules, asyncWrapper(tablesController.createTable));
+router.post("/", authMiddleware, organizationMiddleware, tableValidationRules, asyncWrapper(tablesController.createTable));
 
 /*
     @route GET /api/tables

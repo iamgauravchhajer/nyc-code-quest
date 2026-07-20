@@ -1,7 +1,7 @@
 // Importing modules
-import MenuItemDao from "../../shared/dao/menuItem.dao";
-import ApiError from "../../shared/utils/ApiError.util";
-import ApiResponse from "../../shared/utils/ApiResponse.util";
+import MenuItemDao from "../../shared/dao/menuItem.dao.js";
+import ApiError from "../../shared/utils/ApiError.util.js";
+import ApiResponse from "../../shared/utils/ApiResponse.util.js";
 
 // class for menu item controller
 class MenuItemController {
@@ -40,7 +40,7 @@ class MenuItemController {
 
         const organizationId = req.organization.id;
 
-        const menuItems = await this.menuItemDao.findAllMenuItems();
+        const menuItems = await this.menuItemDao.findAllMenuItems(organizationId);
 
         return ApiResponse(res, 200, "Menu items retrieved successfully", { menuItems });
     }
@@ -97,3 +97,4 @@ class MenuItemController {
 
 }
 
+export default MenuItemController;

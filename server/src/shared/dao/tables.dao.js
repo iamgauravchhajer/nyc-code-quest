@@ -1,5 +1,5 @@
 // importing modules
-import Table from "../models/table.model.js";
+import Table from "../models/tables.model.js";
 
 // class to handle table related database operations
 class TableDao {
