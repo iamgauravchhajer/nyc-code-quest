@@ -29,7 +29,7 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
           <Logo className="w-5 h-5 text-white" />
         </div>
         <div>
-          <span className="font-black text-lg tracking-tight block">Questly</span>
+          <span className="font-black text-lg tracking-tight block">TableOS</span>
           <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mt-0.5">RMS Dashboard</span>
         </div>
       </div>

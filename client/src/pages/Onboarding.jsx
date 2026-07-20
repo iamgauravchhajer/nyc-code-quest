@@ -388,7 +388,7 @@ export const Onboarding = () => {
         <div className="flex flex-col items-center mb-5">
           <div className="flex items-center gap-2 text-gray-900 mb-1.5">
             <Logo className="w-6 h-6 sm:w-7 sm:h-7" />
-            <span className="font-bold text-xl sm:text-2xl tracking-tight">Questly</span>
+            <span className="font-bold text-xl sm:text-2xl tracking-tight">TableOS</span>
           </div>
           <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-yellow-500" /> Set up your restaurant

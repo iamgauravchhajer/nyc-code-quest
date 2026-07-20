@@ -23,7 +23,7 @@ export const Navbar = () => {
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2.5 text-gray-900">
         <Logo className="w-5 h-5 sm:w-6 sm:h-6" />
-        <span className="font-semibold text-base sm:text-lg tracking-tight select-none">Questly</span>
+        <span className="font-semibold text-base sm:text-lg tracking-tight select-none">TableOS</span>
       </Link>
 
       {/* Desktop Navigation Links */}

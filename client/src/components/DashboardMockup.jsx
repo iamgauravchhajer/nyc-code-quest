@@ -104,7 +104,7 @@ export const DashboardMockup = ({ organization }) => {
         <div className="flex-1 max-w-sm mx-auto">
           <div className="bg-[#1a1a1c] rounded-md px-3 py-1 flex items-center justify-center gap-1.5 text-[10px] text-white/60 font-medium">
             <Monitor className="w-3.5 h-3.5 text-white/40" />
-            <span>questly.ai</span>
+            <span>TableOS.ai</span>
           </div>
         </div>
 
@@ -127,7 +127,7 @@ export const DashboardMockup = ({ organization }) => {
             <div className="flex items-center justify-between mb-5 px-1">
               <div className="flex items-center gap-1.5 text-white/80">
                 <Logo className="w-4 h-4 text-white/70" />
-                <span className="text-[10px] font-bold tracking-tight">Questly</span>
+                <span className="text-[10px] font-bold tracking-tight">TableOS</span>
               </div>
               <Sparkles className="w-3.5 h-3.5 text-white/30" />
             </div>
