@@ -1,0 +1,31 @@
+services:
+  server:
+    image: node:20-alpine
+    container_name: nycCodeQuest-server-dev
+    working_dir: /app/server
+    command: node ../scripts/watch-package.js npm run dev -- -L
+    volumes:
+      - .:/app
+      - /app/server/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=development
+
+  client:
+    image: node:20-alpine
+    container_name: nycCodeQuest-client-dev
+    working_dir: /app/client
+    command: sh -c "npm install && npx vite --host"
+    volumes:
+      - .:/app
+      - /app/client/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://server:3000
+    depends_on:
+      - server
