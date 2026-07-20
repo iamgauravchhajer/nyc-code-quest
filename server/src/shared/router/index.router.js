@@ -5,6 +5,7 @@ import ApiResponse from "../utils/ApiResponse.util.js";
 import organizationRouter from "../../modules/organization/organization.router.js";
 import menuCategoryRouter from "../../modules/menuCategory/menuCategory.router.js";
 import menuItemsRouter from "../../modules/menuItems/menuItems.router.js";
+import tablesRouter from "../../modules/tables/tables.router.js";
 
 // creating router instance
 const router = express.Router();
@@ -19,5 +20,6 @@ router.use("/auth", authRouter);
 router.use("/organizations", organizationRouter);
 router.use("/menu-categories", menuCategoryRouter);
 router.use("/menu-items", menuItemsRouter);
+router.use("/tables", tablesRouter);
 
 export default router;
