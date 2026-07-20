@@ -1,6 +1,8 @@
 // importing modules
 import express from "express";
 import AuthController from "./auth.controller.js";
+import { loginValidationRules, signupValidationRules } from "./auth.validator.js";
+import asyncWrapper from "../../shared/utils/asyncWraper.util.js";
 
 // creating router instance
 const router = express.Router();
@@ -15,13 +17,13 @@ const authController = new AuthController();
     @access Public
 
 */
-router.post("/signup", authController.signup);
+router.post("/signup", signupValidationRules , asyncWrapper(authController.signup));
 
 /*
     @route POST /api/auth/login
     @desc Login a user
     @access Public
 */
-router.post("/login", authController.login);
+router.post("/login", loginValidationRules, asyncWrapper(authController.login));
 
 export default router;

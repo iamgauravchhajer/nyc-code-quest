@@ -7,3 +7,5 @@ function asyncWrapper(fn) {
 
 
 }
+
+export default asyncWrapper;
