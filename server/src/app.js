@@ -27,6 +27,14 @@ function createApp() {
     // Serve static files from the "public" directory
     app.use(express.static(path.join(__dirname, "..", "public")));
 
+    // SPA catch-all: serve index.html for all non-API routes so React Router handles them
+    app.get("*", (req, res, next) => {
+        if (req.path.startsWith("/api")) {
+            return next();
+        }
+        res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+    });
+
     // error handling middleware
     app.use(errorHandler);
 

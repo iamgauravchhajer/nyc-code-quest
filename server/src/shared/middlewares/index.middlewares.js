@@ -15,7 +15,8 @@ function applyMiddlewares(app) {
         contentSecurityPolicy: {
             directives: {
                 ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-                "img-src": ["'self'", "data:", "https://images.higgs.ai", "https://*.higgs.ai"],
+                "img-src": ["'self'", "data:", "blob:", "https://images.higgs.ai", "https://*.higgs.ai", "https://api.qrserver.com"],
+                "connect-src": ["'self'", "https://api.qrserver.com"],
             },
         },
     }));
