@@ -9,4 +9,11 @@ export const COOKIE_CONFIG = {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 }
 
+// constant org configs
+export const ORG_COOKIE_CONFIG = {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "lax",
+}
+
 export const TOKEN_EXPIRES_IN = "7d"; // Token expiration time

@@ -2,8 +2,9 @@
 import UserDao from "../../shared/dao/user.dao.js";
 import ApiError from "../../shared/utils/ApiError.util.js";
 import ApiResponse from "../../shared/utils/ApiResponse.util.js";
-import { COOKIE_CONFIG } from "../../shared/constants/tokens.constants.js";
+import { COOKIE_CONFIG, ORG_COOKIE_CONFIG } from "../../shared/constants/tokens.constants.js";
 import sanitizeUser from "../../shared/utils/user.sanitizer.js";
+import OrganizationDao from "../../shared/dao/organization.dao.js"; 
 
 // class to handle authentication operations
 class AuthController {
@@ -13,6 +14,9 @@ class AuthController {
 
         // creating an instance of UserDao to handle user data access operations
         this.userDao = new UserDao();
+
+        // creating an instance of OrganizationDao to handle organization data access operations
+        this.organizationDao = new OrganizationDao();
 
     }
 
@@ -62,6 +66,15 @@ class AuthController {
         const jwt = user.getJWT();
 
         res.cookie("token", jwt, COOKIE_CONFIG);
+
+        // find the organization associated with the user
+        const organization = await this.organizationDao.findOrganizationByUser(user._id);
+
+        if (organization) {
+            const orgJwt = organization.getJWT();
+            res.cookie("organization", orgJwt, ORG_COOKIE_CONFIG);
+        }
+
 
         return ApiResponse(res, 200, "User logged in successfully", { user: sanitizeUser(user) });
 

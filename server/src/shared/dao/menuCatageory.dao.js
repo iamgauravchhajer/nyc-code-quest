@@ -48,6 +48,13 @@ class MenuCategoryDao {
 
     }
 
+    // method to find a menu category by its name
+    async findMenuCategoryByName(name) {
+
+        return await MenuCategory.findOne({ name });
+
+    }
+
 }
 
 export default MenuCategoryDao;

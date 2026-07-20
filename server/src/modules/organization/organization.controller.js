@@ -2,6 +2,7 @@
 import ApiError from "../../shared/utils/ApiError.util.js";
 import ApiResponse from "../../shared/utils/ApiResponse.util.js";
 import OrganizationDao from "../../shared/dao/organization.dao.js";
+import { ORG_COOKIE_CONFIG } from "../../shared/constants/tokens.constants.js";
 
 // class for organization controller
 class OrganizationController {
@@ -47,6 +48,10 @@ class OrganizationController {
             logo,
             banner,
         });
+
+        const jwt = newOrganization.getJWT();
+
+        res.cookie("organization", jwt, ORG_COOKIE_CONFIG);
 
         return ApiResponse(res, 201, "Organization created successfully", { organization: newOrganization });
 
